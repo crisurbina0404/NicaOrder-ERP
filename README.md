@@ -1,4 +1,4 @@
-# 🏥 MedicalSuppliesERP - Sistema de Gestión de Ingreso de Insumos Médicos
+# 🏥 NicaOrder- Sistema de Gestión de Insumos Médicos
 
 Prototipo académico de módulo ERP especializado en la recepción y trazabilidad de insumos médicos estériles y no estériles, diseñado para demostrar principios de ingeniería de software aplicados al cumplimiento de Buenas Prácticas de Almacenamiento y Distribución (GDP/GMP) para dispositivos e insumos sanitarios.
 
@@ -27,10 +27,4 @@ Proyecto educativo que implementa un flujo de ingreso de insumos médicos con co
 - **Cumplimiento:** Mapeo explícito de funcionalidades a normas GDP/GMP para insumos sanitarios
 
 ## ⚠️ Aviso Importante
-Este es un proyecto **exclusivamente académico**. No está certificado ni validado para uso en producción sanitaria real. Las mitigaciones de concurrencia son didácticas y no sustituyen las garantías de un RDBMS empresarial.
-
-## 📚 Documentación
-- [Arquitectura y Decisiones de Diseño](docs/arquitectura.md)
-- [Mapeo Normativo GDP/GMP para Insumos](docs/cumplimiento-normativo.md)
-- [Plan de Migración a Producción](docs/migracion-postgresql.md)
-- [Diagrama de Estados de Calidad](docs/diagrama-estados.png)
+Este es un proyecto **exclusivamente académico**. No está certificado ni validado para uso en producción sanitaria real. Las mitigaciones de concurrencia son didácticas y no sustituyen las garantías de un RDBMS empresa
