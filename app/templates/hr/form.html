@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if is_edit else 'Nuevo' }} Empleado - NicaOrder{% endblock %}
+{% block page_title %}{{ 'Editar' if is_edit else 'Nuevo' }} Empleado{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('hr.list') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('hr.edit', employee_id=employee.id) if is_edit else url_for('hr.create') }}" novalidate>
+        <div class="form-section">
+            <h3 class="section-title">Datos Personales</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="employee_code">Codigo <span class="required">*</span></label>
+                    <input type="text" id="employee_code" name="employee_code" value="{{ form_data.employee_code if form_data.employee_code is defined else (employee.employee_code if is_edit else '') }}" required maxlength="30" placeholder="Ej: EMP-001">
+                </div>
+                <div class="form-group">
+                    <label for="identity_number">Identificacion <span class="required">*</span></label>
+                    <input type="text" id="identity_number" name="identity_number" value="{{ form_data.identity_number if form_data.identity_number is defined else (employee.identity_number if is_edit else '') }}" required maxlength="50" placeholder="Cedula o pasaporte">
+                </div>
+                <div class="form-group">
+                    <label for="first_name">Nombre <span class="required">*</span></label>
+                    <input type="text" id="first_name" name="first_name" value="{{ form_data.first_name if form_data.first_name is defined else (employee.first_name if is_edit else '') }}" required maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Apellido <span class="required">*</span></label>
+                    <input type="text" id="last_name" name="last_name" value="{{ form_data.last_name if form_data.last_name is defined else (employee.last_name if is_edit else '') }}" required maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="birth_date">Fecha de Nacimiento</label>
+                    <input type="date" id="birth_date" name="birth_date" value="{{ form_data.birth_date if form_data.birth_date is defined and form_data.birth_date else (employee.birth_date.strftime('%Y-%m-%d') if is_edit and employee.birth_date else '') }}">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Telefono</label>
+                    <input type="text" id="phone" name="phone" value="{{ form_data.phone if form_data.phone is defined else (employee.phone if is_edit else '') }}" maxlength="30" placeholder="Ej: 8888-1234">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="{{ form_data.email if form_data.email is defined else (employee.email if is_edit else '') }}" maxlength="120" placeholder="correo@empresa.com">
+                </div>
+                <div class="form-group full-width">
+                    <label for="address">Direccion</label>
+                    <input type="text" id="address" name="address" value="{{ form_data.address if form_data.address is defined else (employee.address if is_edit else '') }}" maxlength="300" placeholder="Direccion completa">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Datos Laborales</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="department_id">Departamento <span class="required">*</span></label>
+                    <select id="department_id" name="department_id" required>
+                        <option value="">Seleccione departamento</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {{ 'selected' if (form_data.department_id is defined and form_data.department_id|string == dept.id|string) or (is_edit and employee.department_id == dept.id) }}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="position_id">Cargo <span class="required">*</span></label>
+                    <select id="position_id" name="position_id" required>
+                        <option value="">Seleccione cargo</option>
+                        {% for pos in positions %}
+                        <option value="{{ pos.id }}" {{ 'selected' if (form_data.position_id is defined and form_data.position_id|string == pos.id|string) or (is_edit and employee.position_id == pos.id) }}>{{ pos.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="hire_date">Fecha de Ingreso <span class="required">*</span></label>
+                    <input type="date" id="hire_date" name="hire_date" value="{{ form_data.hire_date if form_data.hire_date is defined and form_data.hire_date else (employee.hire_date.strftime('%Y-%m-%d') if is_edit else '') }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="contract_type">Tipo de Contrato</label>
+                    <select id="contract_type" name="contract_type">
+                        {% for ct in valid_contract_types %}
+                        <option value="{{ ct }}" {{ 'selected' if (form_data.contract_type is defined and form_data.contract_type == ct) or (is_edit and employee.contract_type == ct) }}>{{ ct }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="base_salary">Salario Base (C$) <span class="required">*</span></label>
+                    <input type="number" id="base_salary" name="base_salary" value="{{ form_data.base_salary if form_data.base_salary is defined else (employee.base_salary if is_edit else 0) }}" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="status">Estado</label>
+                    <select id="status" name="status">
+                        {% for s in valid_statuses %}
+                        <option value="{{ s }}" {{ 'selected' if (form_data.status is defined and form_data.status == s) or (is_edit and employee.status == s) }}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if is_edit %}
+                <div class="form-group full-width">
+                    <label for="salary_reason">Motivo del cambio de salario</label>
+                    <input type="text" id="salary_reason" name="salary_reason" maxlength="200" placeholder="Ej: Ajuste anual, promocion, etc.">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('hr.list') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">{{ 'save' if is_edit else 'add' }}</span>
+                {{ 'Guardar Cambios' if is_edit else 'Registrar Empleado' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Empleados - NicaOrder{% endblock %}
+{% block page_title %}Empleados{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('hr.create') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">add</span>
+        Nuevo Empleado
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('hr.list') }}" class="toolbar-form">
+            <div class="search-group">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" name="search" value="{{ search }}" placeholder="Buscar por nombre, codigo o identidad..." class="search-input">
+            </div>
+            <select name="department_id" class="filter-select" onchange="this.form.submit()">
+                <option value="">Todos los departamentos</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {{ 'selected' if selected_department == dept.id|string }}>{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                {% for s in valid_statuses %}
+                <option value="{{ s }}" {{ 'selected' if selected_status == s }}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">search</span>
+                Buscar
+            </button>
+            {% if search or selected_department or selected_status %}
+            <a href="{{ url_for('hr.list') }}" class="btn btn-secondary">
+                <span class="material-icons-outlined">clear_all</span>
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if employees %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Nombre</th>
+                    <th>Identificacion</th>
+                    <th>Departamento</th>
+                    <th>Cargo</th>
+                    <th>Salario</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in employees %}
+                <tr class="{{ '' if emp.status == 'ACTIVO' else 'row-inactive' }}">
+                    <td><code class="code-badge">{{ emp.employee_code }}</code></td>
+                    <td>
+                        <div class="cell-primary">{{ emp.full_name }}</div>
+                        <div class="cell-secondary">{{ emp.phone or '' }}</div>
+                    </td>
+                    <td><code class="code-badge">{{ emp.identity_number }}</code></td>
+                    <td>{{ emp.department.name }}</td>
+                    <td>{{ emp.position.name }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(emp.base_salary) }}</td>
+                    <td>
+                        <span class="badge {{ 'badge-success' if emp.status == 'ACTIVO' else 'badge-borrador' if emp.status == 'SUSPENDIDO' else 'badge-inactive' }}">
+                            {{ emp.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('hr.detail', employee_id=emp.id) }}" class="btn btn-icon" title="Ver detalle">
+                                <span class="material-icons-outlined">visibility</span>
+                            </a>
+                            <a href="{{ url_for('hr.edit', employee_id=emp.id) }}" class="btn btn-icon" title="Editar">
+                                <span class="material-icons-outlined">edit</span>
+                            </a>
+                            <form method="POST" action="{{ url_for('hr.toggle', employee_id=emp.id) }}" class="inline-form">
+                                <button type="submit" class="btn btn-icon" title="{{ 'Desactivar' if emp.status == 'ACTIVO' else 'Activar' }}" onclick="return confirm('{{ 'Desactivar' if emp.status == 'ACTIVO' }} este empleado?')">
+                                    <span class="material-icons-outlined">{{ 'toggle_on' if emp.status == 'ACTIVO' else 'toggle_off' }}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ employees|length }} empleado(s)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">people</span>
+        <h2>No hay empleados</h2>
+        <p>Registre su primer empleado haciendo clic en el boton superior.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

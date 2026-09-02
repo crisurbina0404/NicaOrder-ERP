@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Novedades - {{ month_names[period.month] }} {{ period.year }} - NicaOrder{% endblock %}
+{% block page_title %}Novedades - {{ month_names[period.month] }} {{ period.year }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('payroll.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+    {% if period.status == 'ABIERTO' %}
+    <a href="{{ url_for('payroll.calculate') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">calculate</span>
+        Calcular Nomina
+    </a>
+    {% endif %}
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3 class="section-title">Agregar Novedad</h3>
+        {% if period.status == 'ABIERTO' %}
+        <form method="POST" action="{{ url_for('payroll.create_adjustment') }}">
+            <input type="hidden" name="period_id" value="{{ period.id }}">
+            <div class="form-section">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="employee_id">Empleado <span class="required">*</span></label>
+                        <select id="employee_id" name="employee_id" required>
+                            <option value="">Seleccione empleado</option>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.last_name }} {{ emp.first_name }} - {{ emp.employee_code }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="adjustment_type">Tipo <span class="required">*</span></label>
+                        <select id="adjustment_type" name="adjustment_type" required>
+                            <option value="">Seleccione tipo</option>
+                            {% for key, (label, _, _) in adjustment_types.items() %}
+                            <option value="{{ key }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Monto (C$) <span class="required">*</span></label>
+                        <input type="number" id="amount" name="amount" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Descripcion</label>
+                        <input type="text" id="description" name="description" placeholder="Descripcion opcional">
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-icons-outlined">add</span>
+                    Agregar
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <p class="info-message">
+            Solo se pueden agregar novedades en periodos con estado ABIERTO.
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Novedades Registradas</h3>
+        {% if adjustments %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Tipo</th>
+                        <th>Monto</th>
+                        <th>Descripcion</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for adj in adjustments %}
+                    <tr>
+                        <td>
+                            <div class="cell-primary">{{ adj.employee.last_name }} {{ adj.employee.first_name }}</div>
+                        </td>
+                        <td>
+                            {% if adj.adjustment_type in ('HORA_EXTRA', 'BONIFICACION', 'COMISION') %}
+                            <span class="badge badge-success">{{ adjustment_types[adj.adjustment_type][0] }}</span>
+                            {% else %}
+                            <span class="badge badge-cancelada">{{ adjustment_types[adj.adjustment_type][0] }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            {% if adj.adjustment_type in ('HORA_EXTRA', 'BONIFICACION', 'COMISION') %}
+                            <span class="text-entry">+C$ {{ "%.2f"|format(adj.amount) }}</span>
+                            {% else %}
+                            <span class="text-exit">-C$ {{ "%.2f"|format(adj.amount) }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-secondary-sm">{{ adj.description or '-' }}</td>
+                        <td>
+                            {% if period.status == 'ABIERTO' %}
+                            <form method="POST" action="{{ url_for('payroll.delete_adjustment', adjustment_id=adj.id) }}" class="inline-form">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Eliminar esta novedad?')">
+                                    <span class="material-icons-outlined">delete</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="material-icons-outlined empty-icon">edit_note</span>
+            <p>No hay novedades registradas para este periodo.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

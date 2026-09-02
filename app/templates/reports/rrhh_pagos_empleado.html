@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Pagos por Empleado - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Pagos por Empleado{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card filter-card">
+    <form method="GET" action="{{ url_for('reports.rrhh_pagos_empleado') }}" class="filter-form">
+        <div class="filter-group">
+            <label>Desde</label>
+            <input type="date" name="start" value="{{ start }}">
+        </div>
+        <div class="filter-group">
+            <label>Hasta</label>
+            <input type="date" name="end" value="{{ end }}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">search</span>
+            Filtrar
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Departamento</th>
+                    <th class="text-center">Periodos</th>
+                    <th class="text-right">Bruto Acumulado</th>
+                    <th class="text-right">INSS</th>
+                    <th class="text-right">IR</th>
+                    <th class="text-right">Neto Acumulado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td>
+                        <div class="cell-primary">{{ r.employee.first_name }} {{ r.employee.last_name }}</div>
+                        <div class="cell-secondary">{{ r.employee.employee_code }}</div>
+                    </td>
+                    <td>{{ r.employee.department.name }}</td>
+                    <td class="text-center">{{ r.count }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(r.gross) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(r.inss) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(r.ir) }}</td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(r.net) }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totals-row">
+                    <td colspan="2"><strong>TOTAL</strong></td>
+                    <td class="text-center"><strong>{{ results|sum(attribute='count') }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(results|sum(attribute='gross')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(results|sum(attribute='inss')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(results|sum(attribute='ir')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(results|sum(attribute='net')) }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

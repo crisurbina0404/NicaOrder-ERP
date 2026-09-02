@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Compra #{{ purchase.id }} - NicaOrder{% endblock %}
+{% block page_title %}Compra #{{ purchase.id }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('purchases.list') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+    {% if purchase.status == 'BORRADOR' %}
+    <a href="{{ url_for('purchases.edit', purchase_id=purchase.id) }}" class="btn btn-primary">
+        <span class="material-icons-outlined">edit</span>
+        Editar
+    </a>
+    {% endif %}
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3 class="section-title">Informacion General</h3>
+        <div class="detail-fields">
+            <div class="detail-field">
+                <span class="detail-label">Proveedor</span>
+                <span class="detail-value">{{ purchase.supplier.name }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">NIT/RUC</span>
+                <span class="detail-value">{{ purchase.supplier.tax_id }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Fecha</span>
+                <span class="detail-value">{{ purchase.purchase_date.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Registrado por</span>
+                <span class="detail-value">{{ purchase.user.full_name }}</span>
+            </div>
+            {% if purchase.notes %}
+            <div class="detail-field full-width">
+                <span class="detail-label">Notas</span>
+                <span class="detail-value">{{ purchase.notes }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Estado</h3>
+        <div class="status-section">
+            <span class="badge badge-{{ purchase.status|lower }} badge-large">{{ purchase.status }}</span>
+            {% if purchase.status == 'BORRADOR' %}
+            <div class="status-actions">
+                <form method="POST" action="{{ url_for('purchases.update_status', purchase_id=purchase.id) }}" class="inline-form">
+                    <input type="hidden" name="status" value="RECIBIDA">
+                    <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Marcar esta compra como recibida? Esta accion agregara el stock al inventario.')">
+                        <span class="material-icons-outlined">check_circle</span>
+                        Marcar Recibida
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('purchases.update_status', purchase_id=purchase.id) }}" class="inline-form">
+                    <input type="hidden" name="status" value="CANCELADA">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancelar esta compra?')">
+                        <span class="material-icons-outlined">cancel</span>
+                        Cancelar
+                    </button>
+                </form>
+            </div>
+            {% elif purchase.status == 'RECIBIDA' %}
+            <div class="status-actions">
+                <form method="POST" action="{{ url_for('purchases.update_status', purchase_id=purchase.id) }}" class="inline-form">
+                    <input type="hidden" name="status" value="PAGADA">
+                    <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Marcar esta compra como pagada?')">
+                        <span class="material-icons-outlined">payment</span>
+                        Marcar Pagada
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="section-title">Productos</h3>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Costo Unit.</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in purchase.items %}
+                <tr>
+                    <td><code class="code-badge">{{ item.product.code }}</code></td>
+                    <td>
+                        <div class="cell-primary">{{ item.product.name }}</div>
+                        <div class="cell-secondary">{{ item.product.unit }}</div>
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(item.unit_cost) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(item.subtotal) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="totals-detail">
+        <div class="total-row">
+            <span>Subtotal:</span>
+            <span>C$ {{ "%.2f"|format(purchase.subtotal) }}</span>
+        </div>
+        <div class="total-row">
+            <span>Descuento:</span>
+            <span>-C$ {{ "%.2f"|format(purchase.discount) }}</span>
+        </div>
+        <div class="total-row">
+            <span>Impuesto:</span>
+            <span>+C$ {{ "%.2f"|format(purchase.tax) }}</span>
+        </div>
+        <div class="total-row total-final">
+            <span>Total:</span>
+            <span>C$ {{ "%.2f"|format(purchase.total) }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

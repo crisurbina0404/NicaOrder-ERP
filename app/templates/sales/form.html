@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if is_edit else 'Nueva' }} Venta - NicaOrder{% endblock %}
+{% block page_title %}{{ 'Editar' if is_edit else 'POS - Nueva Venta' }}{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('sales.edit', sale_id=sale.id) if is_edit else url_for('sales.create') }}" id="saleForm" novalidate>
+<div class="pos-layout">
+
+    <!-- LEFT: Productos -->
+    <div class="pos-products">
+        <div class="pos-search-bar">
+            <div class="search-group" style="flex:1;">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" id="productSearch" placeholder="Buscar por codigo o nombre..." class="search-input" autofocus>
+            </div>
+            <select id="categoryFilter" class="filter-select">
+                <option value="">Todas</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="pos-view-toggle" id="viewToggle" onclick="toggleView()" title="Cambiar vista">
+                <span class="material-icons-outlined" id="viewIcon">grid_view</span>
+            </button>
+        </div>
+
+        <div class="pos-product-grid" id="productGrid">
+            {% for prod in products %}
+            {% set stock = product_stock.get(prod.id, 0) %}
+            <div class="pos-product-card {{ 'pos-product-out' if stock <= 0 }}" data-id="{{ prod.id }}" data-code="{{ prod.code }}" data-name="{{ prod.name }}" data-price="{{ prod.sale_price }}" data-category="{{ prod.category_id }}" data-stock="{{ stock }}">
+                <div class="pos-product-name">{{ prod.name }}</div>
+                <div class="pos-product-code">{{ prod.code }}</div>
+                <div class="pos-product-stock {{ 'stock-low' if stock <= 5 and stock > 0 }} {{ 'stock-out' if stock <= 0 }}">
+                    {% if stock <= 0 %}Sin stock{% elif stock <= 5 %}Solo {{ stock }}{% else %}Stock: {{ stock }}{% endif %}
+                </div>
+                <div class="pos-product-price">C$ {{ "%.2f"|format(prod.sale_price) }}</div>
+                <button type="button" class="pos-add-btn" onclick="addProductToCart({{ prod.id }}, '{{ prod.code }}', '{{ prod.name }}', {{ prod.sale_price }}, {{ stock }})" {{ 'disabled' if stock <= 0 }}>
+                    <span class="material-icons-outlined">{{ 'add_shopping_cart' if stock > 0 else 'block' }}</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RIGHT: Carrito -->
+    <div class="pos-cart">
+        <div class="pos-cart-header">
+            <span class="material-icons-outlined">shopping_cart</span>
+            <h3>Carrito</h3>
+            <span class="pos-cart-count" id="cartCount">0</span>
+        </div>
+
+        <div class="pos-cart-fields">
+            <div class="form-group">
+                <label for="customer_id">Cliente</label>
+                <select id="customer_id" name="customer_id" required>
+                    <option value="">Seleccionar cliente</option>
+                    {% for customer in customers %}
+                    <option value="{{ customer.id }}" {{ 'selected' if (form_data.customer_id is defined and form_data.customer_id|string == customer.id|string) or (is_edit and sale.customer_id == customer.id) }}>{{ customer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="pos-cart-row">
+                <div class="form-group" style="flex:1;">
+                    <label for="payment_method">Pago</label>
+                    <select id="payment_method" name="payment_method" required>
+                        {% for method in valid_payment_methods %}
+                        <option value="{{ method }}" {{ 'selected' if (form_data.payment_method is defined and form_data.payment_method == method) or (is_edit and sale.payment_method == method) }}>{{ method }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label for="sale_date">Fecha</label>
+                    <input type="date" id="sale_date" name="sale_date" value="{{ form_data.sale_date if form_data.sale_date is defined else (sale.sale_date.strftime('%Y-%m-%d') if is_edit else '') }}" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="pos-cart-items" id="cartItems">
+            {% if is_edit and sale.items %}
+            {% for item in sale.items %}
+            <div class="pos-cart-item" data-id="{{ item.product_id }}" data-price="{{ item.unit_price }}">
+                <div class="pos-cart-item-info">
+                    <span class="pos-cart-item-name">{{ item.product.code }} - {{ item.product.name }}</span>
+                    <span class="pos-cart-item-price">C$ {{ "%.2f"|format(item.unit_price) }}</span>
+                </div>
+                <div class="pos-cart-item-controls">
+                    <button type="button" class="pos-qty-btn" onclick="changeQty(this, -1)">-</button>
+                    <input type="number" name="item_product_id[]" value="{{ item.product_id }}" hidden>
+                    <input type="number" name="item_quantity[]" value="{{ item.quantity }}" min="1" class="pos-qty-input" onchange="recalculateCart()">
+                    <input type="number" name="item_unit_price[]" value="{{ '%.2f'|format(item.unit_price) }}" hidden>
+                    <button type="button" class="pos-qty-btn" onclick="changeQty(this, 1)">+</button>
+                    <button type="button" class="pos-remove-btn" onclick="removeCartItem(this)">
+                        <span class="material-icons-outlined">close</span>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="pos-cart-empty" id="cartEmpty">
+            <span class="material-icons-outlined">add_shopping_cart</span>
+            <p>Agregue productos</p>
+        </div>
+
+        <div class="pos-cart-totals">
+            <div class="pos-total-row">
+                <span>Subtotal</span>
+                <span id="displaySubtotal">C$ 0.00</span>
+            </div>
+            <div class="pos-total-row">
+                <span>Descuento</span>
+                <input type="number" id="discount" name="discount" value="{{ form_data.discount if form_data.discount is defined else (sale.discount if is_edit else 0) }}" step="0.01" min="0" class="pos-total-input" onchange="recalculateCart()">
+            </div>
+            <div class="pos-total-row">
+                <span>Impuesto</span>
+                <input type="number" id="tax" name="tax" value="{{ form_data.tax if form_data.tax is defined else (sale.tax if is_edit else 0) }}" step="0.01" min="0" class="pos-total-input" onchange="recalculateCart()">
+            </div>
+            <div class="pos-total-final">
+                <span>TOTAL</span>
+                <span id="displayTotal">C$ 0.00</span>
+            </div>
+        </div>
+
+        <div class="pos-cart-notes">
+            <textarea id="notes" name="notes" rows="2" maxlength="500" placeholder="Notas de la venta...">{{ form_data.notes if form_data.notes is defined else (sale.notes if is_edit else '') }}</textarea>
+        </div>
+
+        <div class="pos-cart-actions">
+            <a href="{{ url_for('sales.list') }}" class="btn btn-secondary" style="flex:1;">
+                <span class="material-icons-outlined">arrow_back</span>
+                Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary" style="flex:2;" id="submitBtn">
+                <span class="material-icons-outlined">point_of_sale</span>
+                {{ 'Actualizar' if is_edit else 'Cobrar' }}
+            </button>
+        </div>
+    </div>
+
+</div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var allProducts = [
+    {% for prod in products %}
+    {id:{{ prod.id }}, code:"{{ prod.code }}", name:"{{ prod.name }}", price:{{ prod.sale_price }}, category:{{ prod.category_id }}, stock:{{ product_stock.get(prod.id, 0) }}},
+    {% endfor %}
+];
+
+function toggleView() {
+    var grid = document.getElementById("productGrid");
+    var icon = document.getElementById("viewIcon");
+    if (grid.classList.contains("pos-list-view")) {
+        grid.classList.remove("pos-list-view");
+        icon.textContent = "grid_view";
+    } else {
+        grid.classList.add("pos-list-view");
+        icon.textContent = "view_list";
+    }
+}
+
+function addProductToCart(id, code, name, price, stock) {
+    if (stock <= 0) return;
+    var cartItems = document.getElementById("cartItems");
+    var existing = cartItems.querySelector('.pos-cart-item[data-id="' + id + '"]');
+    if (existing) {
+        var qtyInput = existing.querySelector('input[name="item_quantity[]"]');
+        var newQty = parseInt(qtyInput.value) + 1;
+        if (newQty > stock) { qtyInput.value = stock; recalculateCart(); return; }
+        qtyInput.value = newQty;
+        recalculateCart();
+        return;
+    }
+    var div = document.createElement("div");
+    div.className = "pos-cart-item";
+    div.setAttribute("data-id", id);
+    div.setAttribute("data-price", price);
+    div.innerHTML =
+        '<div class="pos-cart-item-info">' +
+            '<span class="pos-cart-item-name">' + code + ' - ' + name + '</span>' +
+            '<span class="pos-cart-item-price">C$ ' + price.toFixed(2) + '</span>' +
+        '</div>' +
+        '<div class="pos-cart-item-controls">' +
+            '<input type="number" name="item_product_id[]" value="' + id + '" hidden>' +
+            '<button type="button" class="pos-qty-btn" onclick="changeQty(this, -1)">-</button>' +
+            '<input type="number" name="item_quantity[]" value="1" min="1" max="' + stock + '" class="pos-qty-input" onchange="recalculateCart()">' +
+            '<input type="number" name="item_unit_price[]" value="' + price.toFixed(2) + '" hidden>' +
+            '<button type="button" class="pos-qty-btn" onclick="changeQty(this, 1, ' + stock + ')">+</button>' +
+            '<button type="button" class="pos-remove-btn" onclick="removeCartItem(this)">' +
+                '<span class="material-icons-outlined">close</span>' +
+            '</button>' +
+        '</div>';
+    cartItems.appendChild(div);
+    recalculateCart();
+}
+
+function changeQty(btn, delta, maxStock) {
+    var controls = btn.parentElement;
+    var qtyInput = controls.querySelector('input[name="item_quantity[]"]');
+    var newVal = parseInt(qtyInput.value) + delta;
+    if (newVal < 1) newVal = 1;
+    if (maxStock && newVal > maxStock) newVal = maxStock;
+    qtyInput.value = newVal;
+    recalculateCart();
+}
+
+function removeCartItem(btn) {
+    btn.closest(".pos-cart-item").remove();
+    recalculateCart();
+}
+
+function recalculateCart() {
+    var items = document.querySelectorAll(".pos-cart-item");
+    var subtotal = 0;
+    items.forEach(function(item) {
+        var qty = parseInt(item.querySelector('input[name="item_quantity[]"]').value) || 0;
+        var price = parseFloat(item.querySelector('input[name="item_unit_price[]"]').value) || 0;
+        subtotal += qty * price;
+    });
+    var discount = parseFloat(document.getElementById("discount").value) || 0;
+    var tax = parseFloat(document.getElementById("tax").value) || 0;
+    var total = subtotal - discount + tax;
+    if (total < 0) total = 0;
+
+    document.getElementById("displaySubtotal").textContent = "C$ " + subtotal.toFixed(2);
+    document.getElementById("displayTotal").textContent = "C$ " + total.toFixed(2);
+    document.getElementById("cartCount").textContent = items.length;
+
+    var cartEmpty = document.getElementById("cartEmpty");
+    if (items.length > 0) {
+        cartEmpty.style.display = "none";
+    } else {
+        cartEmpty.style.display = "flex";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    var searchInput = document.getElementById("productSearch");
+    var categoryFilter = document.getElementById("categoryFilter");
+    var productGrid = document.getElementById("productGrid");
+
+    function filterProducts() {
+        var query = searchInput.value.toLowerCase();
+        var cat = categoryFilter.value;
+        productGrid.querySelectorAll(".pos-product-card").forEach(function(card) {
+            var matchSearch = !query || card.dataset.name.toLowerCase().indexOf(query) !== -1 || card.dataset.code.toLowerCase().indexOf(query) !== -1;
+            var matchCat = !cat || card.dataset.category === cat;
+            card.style.display = (matchSearch && matchCat) ? "" : "none";
+        });
+    }
+
+    searchInput.addEventListener("input", filterProducts);
+    categoryFilter.addEventListener("change", filterProducts);
+
+    recalculateCart();
+});
+</script>
+{% endblock %}

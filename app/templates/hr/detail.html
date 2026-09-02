@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}{{ employee.employee_code }} - Empleado - NicaOrder{% endblock %}
+{% block page_title %}{{ employee.employee_code }} - {{ employee.full_name }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('hr.list') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+    <a href="{{ url_for('hr.edit', employee_id=employee.id) }}" class="btn btn-primary">
+        <span class="material-icons-outlined">edit</span>
+        Editar
+    </a>
+    <a href="{{ url_for('hr.salary_history', employee_id=employee.id) }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">history</span>
+        Historial Salarial
+    </a>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3 class="section-title">Datos Personales</h3>
+        <div class="detail-fields">
+            <div class="detail-field">
+                <span class="detail-label">Codigo</span>
+                <span class="detail-value"><code class="code-badge">{{ employee.employee_code }}</code></span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Identificacion</span>
+                <span class="detail-value">{{ employee.identity_number }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Nombre Completo</span>
+                <span class="detail-value">{{ employee.full_name }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Edad</span>
+                <span class="detail-value">{{ employee.age ~ ' anos' if employee.age else '-' }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Telefono</span>
+                <span class="detail-value">{{ employee.phone or '-' }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Email</span>
+                <span class="detail-value">{{ employee.email or '-' }}</span>
+            </div>
+            <div class="detail-field full-width">
+                <span class="detail-label">Direccion</span>
+                <span class="detail-value">{{ employee.address or '-' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Datos Laborales</h3>
+        <div class="detail-fields">
+            <div class="detail-field">
+                <span class="detail-label">Departamento</span>
+                <span class="detail-value">{{ employee.department.name }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Cargo</span>
+                <span class="detail-value">{{ employee.position.name }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Fecha de Ingreso</span>
+                <span class="detail-value">{{ employee.hire_date.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Antiguedad</span>
+                <span class="detail-value">{{ employee.years_of_service ~ ' ano(s)' }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Tipo de Contrato</span>
+                <span class="detail-value">{{ employee.contract_type }}</span>
+            </div>
+            <div class="detail-field">
+                <span class="detail-label">Salario Base</span>
+                <span class="detail-value salary-value">C$ {{ "%.2f"|format(employee.base_salary) }}</span>
+            </div>
+        </div>
+        <div class="mt-md">
+            <span class="badge {{ 'badge-success' if employee.status == 'ACTIVO' else 'badge-borrador' if employee.status == 'SUSPENDIDO' else 'badge-inactive' }} badge-large">
+                {{ employee.status }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="section-title">Historial Salarial Reciente</h3>
+    {% if salary_history %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Salario</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in salary_history[:5] %}
+                <tr>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(record.salary) }}</strong></td>
+                    <td>{{ record.start_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ record.end_date.strftime('%d/%m/%Y') if record.end_date else 'Actual' }}</td>
+                    <td>{{ record.reason or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if salary_history|length > 5 %}
+    <div class="table-footer">
+        <a href="{{ url_for('hr.salary_history', employee_id=employee.id) }}" class="btn btn-secondary btn-sm">
+            Ver historial completo
+        </a>
+    </div>
+    {% endif %}
+    {% else %}
+    <p style="font-size:14px;color:var(--text-secondary);padding:12px 0;">No hay registros salariales.</p>
+    {% endif %}
+</div>
+{% endblock %}

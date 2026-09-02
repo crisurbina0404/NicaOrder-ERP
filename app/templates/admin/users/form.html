@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if is_edit else 'Crear' }} Usuario - NicaOrder{% endblock %}
+{% block page_title %}{{ 'Editar' if is_edit else 'Crear' }} Usuario{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" novalidate>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="username">Nombre de usuario *</label>
+                <input type="text" id="username" name="username" required
+                       value="{{ form_data.get('username', '') if form_data else (user.username if user else '') }}">
+            </div>
+            <div class="form-group">
+                <label for="email">Correo electronico *</label>
+                <input type="email" id="email" name="email" required
+                       value="{{ form_data.get('email', '') if form_data else (user.email if user else '') }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="full_name">Nombre completo *</label>
+            <input type="text" id="full_name" name="full_name" required
+                   value="{{ form_data.get('full_name', '') if form_data else (user.full_name if user else '') }}">
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Telefono</label>
+            <input type="text" id="phone" name="phone"
+                   value="{{ form_data.get('phone', '') if form_data else (user.phone if user else '') }}">
+        </div>
+
+        <div class="form-group">
+            <label for="role_id">Rol *</label>
+            <select id="role_id" name="role_id" required>
+                <option value="">Seleccione un rol...</option>
+                {% for role in roles %}
+                <option value="{{ role.id }}" {{ 'selected' if (form_data.get('role_id', '') if form_data else (user.role_id if user else ''))|string == role.id|string else '' }}>
+                    {{ role.name }} - {{ role.description }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if user and user.account_status %}
+        <div class="form-group">
+            <label>Estado actual</label>
+            <span class="status-badge status-{{ user.account_status|lower }}">{{ user.account_status }}</span>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="password">{{ 'Nueva contrasena (dejar vacio para mantener)' if is_edit else 'Contrasena *' }}</label>
+            <input type="password" id="password" name="password" {{ '' if is_edit else 'required' }} autocomplete="new-password">
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">{{ 'save' if is_edit else 'person_add' }}</span>
+                {{ 'Guardar Cambios' if is_edit else 'Crear Usuario' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

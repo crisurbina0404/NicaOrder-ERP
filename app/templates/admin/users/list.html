@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Usuarios - NicaOrder{% endblock %}
+{% block page_title %}Gestion de Usuarios{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('admin.pending_users') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">pending_actions</span> Pendientes
+    </a>
+    <a href="{{ url_for('admin.user_create') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">person_add</span> Nuevo Usuario
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('admin.users') }}" class="toolbar-form">
+            <div class="search-group">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" name="search" placeholder="Buscar usuario, nombre o email..." value="{{ search }}" class="search-input">
+            </div>
+            <select name="status" class="filter-select">
+                <option value="">Todos los estados</option>
+                {% for s in valid_statuses %}
+                <option value="{{ s }}" {{ 'selected' if selected_status == s else '' }}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <select name="role" class="filter-select">
+                <option value="">Todos los roles</option>
+                {% for r in roles %}
+                <option value="{{ r.name }}" {{ 'selected' if selected_role == r.name else '' }}>{{ r.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">search</span>
+                Buscar
+            </button>
+            {% if search or selected_status or selected_role %}
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">
+                <span class="material-icons-outlined">clear_all</span>
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Ultimo Acceso</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role.name }}</td>
+                    <td>
+                        <span class="status-badge status-{{ user.account_status|lower }}">
+                            {{ user.account_status }}
+                        </span>
+                    </td>
+                    <td>{{ user.last_login.strftime('%d/%m/%Y %H:%M') if user.last_login else 'Nunca' }}</td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('admin.user_edit', user_id=user.id) }}" class="btn btn-icon" title="Editar">
+                                <span class="material-icons-outlined">edit</span>
+                            </a>
+                            {% if user.account_status == 'ACTIVA' %}
+                            <form method="POST" action="{{ url_for('admin.user_block', user_id=user.id) }}" class="inline-form">
+                                <button type="submit" class="btn btn-icon" title="Bloquear" onclick="return confirm('Bloquear a {{ user.username }}?')">
+                                    <span class="material-icons-outlined">block</span>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.user_toggle', user_id=user.id) }}" class="inline-form">
+                                <button type="submit" class="btn btn-icon" title="Desactivar" onclick="return confirm('Desactivar a {{ user.username }}?')">
+                                    <span class="material-icons-outlined">toggle_on</span>
+                                </button>
+                            </form>
+                            {% elif user.account_status in ('INACTIVA', 'BLOQUEADA', 'RECHAZADA') %}
+                            <form method="POST" action="{{ url_for('admin.user_toggle', user_id=user.id) }}" class="inline-form">
+                                <button type="submit" class="btn btn-icon" title="Activar" onclick="return confirm('Activar a {{ user.username }}?')">
+                                    <span class="material-icons-outlined">toggle_off</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ users|length }} usuario(s)</span>
+    </div>
+</div>
+{% endblock %}

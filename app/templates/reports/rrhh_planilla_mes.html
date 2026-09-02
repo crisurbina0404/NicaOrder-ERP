@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Planilla por Mes - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Planilla por Mes{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card filter-card">
+    <form method="GET" action="{{ url_for('reports.rrhh_planilla_mes') }}" class="filter-form">
+        <div class="filter-group">
+            <label>Desde</label>
+            <input type="date" name="start" value="{{ start }}">
+        </div>
+        <div class="filter-group">
+            <label>Hasta</label>
+            <input type="date" name="end" value="{{ end }}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">search</span>
+            Filtrar
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Periodo</th>
+                    <th>Estado Nomina</th>
+                    <th class="text-center">Empleados</th>
+                    <th class="text-right">Ingresos</th>
+                    <th class="text-right">Deducciones</th>
+                    <th class="text-right">Neto Total</th>
+                    <th>Generada</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in data %}
+                <tr>
+                    <td>
+                        <div class="cell-primary">{{ month_names[d.period.month] }} {{ d.period.year }}</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ 'pagada' if d.payroll.status == 'PAGADA' else 'confirmada' if d.payroll.status == 'CALCULADA' else 'recibida' if d.payroll.status == 'APROBADA' else 'borrador' }}">
+                            {{ d.payroll.status }}
+                        </span>
+                    </td>
+                    <td class="text-center">{{ d.payroll.items|length }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(d.payroll.total_income) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(d.payroll.total_deductions) }}</td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(d.payroll.total_net) }}</strong></td>
+                    <td>{{ d.payroll.created_at.strftime('%d/%m/%Y') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

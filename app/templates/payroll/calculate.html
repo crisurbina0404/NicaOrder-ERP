@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Calcular Nomina - NicaOrder{% endblock %}
+{% block page_title %}Calcular Nomina{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('payroll.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('payroll.calculate') }}">
+        <div class="form-section">
+            <h3 class="section-title">Seleccionar Periodo</h3>
+            <p class="form-description">
+                Seleccione el periodo para calcular la nomina. Se buscaran todos los empleados activos y se calcularan sus salarios, deducciones e impuestos.
+            </p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="period_id">Periodo <span class="required">*</span></label>
+                    <select id="period_id" name="period_id" required>
+                        <option value="">Seleccione periodo</option>
+                        {% for period in periods %}
+                        <option value="{{ period.id }}">{{ month_names[period.month] }} {{ period.year }} ({{ period.status }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Calculos Incluidos</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="text-secondary-sm">
+                <div class="flex-center-gap">
+                    <span class="material-icons-outlined icon-success">check_circle</span>
+                    Salario base segun historial
+                </div>
+                <div class="flex-center-gap">
+                    <span class="material-icons-outlined icon-success">check_circle</span>
+                    Horas extras, bonos, comisiones
+                </div>
+                <div class="flex-center-gap">
+                    <span class="material-icons-outlined icon-success">check_circle</span>
+                    INSS laboral (7%)
+                </div>
+                <div class="flex-center-gap">
+                    <span class="material-icons-outlined icon-success">check_circle</span>
+                    Impuesto a la renta (Ley 822)
+                </div>
+                <div class="flex-center-gap">
+                    <span class="material-icons-outlined icon-success">check_circle</span>
+                    Prestamos y anticipos
+                </div>
+                <div class="flex-center-gap">
+                    <span class="material-icons-outlined icon-success">check_circle</span>
+                    Salario neto por empleado
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('payroll.index') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">calculate</span>
+                Calcular Nomina
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

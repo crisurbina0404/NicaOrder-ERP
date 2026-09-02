@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Devolucion Venta #{{ sale.id }} - NicaOrder{% endblock %}
+{% block page_title %}Devolucion - Venta #{{ sale.id }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('sales.detail', sale_id=sale.id) }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card">
+    <div class="detail-header">
+        <div class="detail-info">
+            <h3>Devolucion de Productos</h3>
+            <p class="text-secondary-sm">Venta #{{ sale.id }} - {{ sale.customer.name }} - {{ sale.sale_date.strftime('%d/%m/%Y') }}</p>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('sales.return_sale', sale_id=sale.id) }}">
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad Vendida</th>
+                        <th>Ya Devuelto</th>
+                        <th>Disponible</th>
+                        <th>Devolver</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sale.items %}
+                    {% set available = item.quantity - (item.quantity_returned or 0) %}
+                    {% if available > 0 %}
+                    <tr>
+                        <td>
+                            <div class="cell-primary">{{ item.product.code }} - {{ item.product.name }}</div>
+                            <div class="cell-secondary">C$ {{ "%.2f"|format(item.unit_price) }} c/u</div>
+                        </td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-center">{{ item.quantity_returned or 0 }}</td>
+                        <td class="text-center"><strong>{{ available }}</strong></td>
+                        <td class="text-center">
+                            <input type="number" name="return_item_id[]" value="{{ item.id }}" hidden>
+                            <input type="number" name="return_quantity[]" value="0" min="0" max="{{ available }}"
+                                   class="pos-qty-input" style="width:60px;">
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-section" style="margin-top:16px;">
+            <div class="form-group">
+                <label for="reason">Motivo de la devolucion</label>
+                <textarea id="reason" name="reason" rows="2" maxlength="300" placeholder="Describe el motivo de la devolucion..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('sales.detail', sale_id=sale.id) }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Procesar devolucion? El stock sera restaurado al inventario.')">
+                <span class="material-icons-outlined">replay</span>
+                Procesar Devolucion
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

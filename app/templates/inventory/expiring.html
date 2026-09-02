@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Productos por Vencer - NicaOrder{% endblock %}
+{% block page_title %}Productos Vencidos y Proximos a Vencer{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('inventory.stock') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('inventory.expiring') }}" class="toolbar-form">
+            <label class="toolbar-label">Mostrar lotes que vencen en:</label>
+            <select name="days" class="filter-select" onchange="this.form.submit()">
+                <option value="30" {{ 'selected' if days == 30 }}>30 dias</option>
+                <option value="60" {{ 'selected' if days == 60 }}>60 dias</option>
+                <option value="90" {{ 'selected' if days == 90 }}>90 dias</option>
+                <option value="180" {{ 'selected' if days == 180 }}>180 dias</option>
+                <option value="365" {{ 'selected' if days == 365 }}>1 ano</option>
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">filter_list</span>
+                Aplicar
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if expired %}
+<div class="card">
+    <h3 class="section-title">
+        <span class="material-icons-outlined" style="color: var(--error);">error</span>
+        Productos Vencidos ({{ expired|length }})
+    </h3>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Lote</th>
+                    <th>Fecha Venc.</th>
+                    <th>Cantidad</th>
+                    <th>Dias Vencido</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in expired %}
+                <tr class="row-expired">
+                    <td>
+                        <div class="cell-primary">{{ batch.product.name }}</div>
+                        <div class="cell-secondary">{{ batch.product.code }}</div>
+                    </td>
+                    <td><code class="code-badge">{{ batch.batch_number }}</code></td>
+                    <td>{{ batch.expiration_date.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-center"><strong>{{ batch.current_quantity }}</strong></td>
+                    <td class="text-center">
+                        <span class="badge badge-expired">{{ (now_date - batch.expiration_date).days }} dias</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if expiring_soon %}
+<div class="card">
+    <h3 class="section-title">
+        <span class="material-icons-outlined" style="color: #e65100;">warning</span>
+        Proximos a Vencer en {{ days }} dias ({{ expiring_soon|length }})
+    </h3>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Lote</th>
+                    <th>Fecha Venc.</th>
+                    <th>Cantidad</th>
+                    <th>Dias Restantes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in expiring_soon %}
+                <tr class="row-expiring">
+                    <td>
+                        <div class="cell-primary">{{ batch.product.name }}</div>
+                        <div class="cell-secondary">{{ batch.product.code }}</div>
+                    </td>
+                    <td><code class="code-badge">{{ batch.batch_number }}</code></td>
+                    <td>{{ batch.expiration_date.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-center"><strong>{{ batch.current_quantity }}</strong></td>
+                    <td class="text-center">
+                        <span class="badge badge-expiring">{{ (batch.expiration_date - now_date).days }} dias</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if not expired and not expiring_soon %}
+<div class="card">
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">check_circle</span>
+        <h2>No hay productos vencidos ni proximos a vencer</h2>
+        <p>Todos los lotes estan dentro de su fecha de vigencia.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

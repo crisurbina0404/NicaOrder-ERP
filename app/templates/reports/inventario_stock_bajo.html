@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Bajo - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Productos con Stock Bajo{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="summary-cards">
+    <div class="summary-card summary-danger">
+        <span class="material-icons-outlined summary-icon">warning</span>
+        <div class="summary-info">
+            <div class="summary-label">Productos con Stock Bajo</div>
+            <div class="summary-value">{{ stock_data|length }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Codigo</th>
+                    <th>Categoria</th>
+                    <th class="text-right">Stock Actual</th>
+                    <th class="text-right">Stock Minimo</th>
+                    <th class="text-right">Diferencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in stock_data %}
+                <tr>
+                    <td><div class="cell-primary">{{ item.product.name }}</div></td>
+                    <td><code class="code-badge">{{ item.product.code }}</code></td>
+                    <td>{{ item.product.category.name }}</td>
+                    <td class="text-right"><strong>{{ item.stock }}</strong></td>
+                    <td class="text-right">{{ item.min_stock }}</td>
+                    <td class="text-right">
+                        <span class="text-exit">-{{ item.min_stock - item.stock }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Auditoria - NicaOrder{% endblock %}
+{% block page_title %}Registro de Auditoria{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Historial de Cambios</h2>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Accion</th>
+                    <th>Modulo</th>
+                    <th>Descripcion</th>
+                    <th>Detalles</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs.items %}
+                <tr>
+                    <td>{{ log.created_at.strftime('%d/%m/%Y %H:%M') if log.created_at else '-' }}</td>
+                    <td>{{ log.user.username if log.user else 'Sistema' }}</td>
+                    <td>
+                        <span class="status-badge status-{{ log.action|lower }}">
+                            {{ log.action }}
+                        </span>
+                    </td>
+                    <td>{{ log.module }}</td>
+                    <td>{{ log.description or '-' }}</td>
+                    <td>
+                        {% if log.previous_role or log.new_role or log.previous_status or log.new_status %}
+                        <small>
+                            {% if log.previous_role %}Rol anterior: {{ log.previous_role.name }}{% endif %}
+                            {% if log.new_role %}{% if log.previous_role %} &rarr; {% endif %}Rol nuevo: {{ log.new_role.name }}{% endif %}
+                            {% if log.previous_status and log.new_status %}<br>{% endif %}
+                            {% if log.previous_status %}Estado: {{ log.previous_status }}{% endif %}
+                            {% if log.new_status %}{% if log.previous_status %} &rarr; {% endif %}{{ log.new_status }}{% endif %}
+                            {% if log.reason %}<br>Motivo: {{ log.reason }}{% endif %}
+                        </small>
+                        {% else %}-{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if logs.pages > 1 %}
+    <div class="table-footer" style="justify-content:center;">
+        {% if logs.has_prev %}
+        <a href="{{ url_for('admin.audit_log', page=logs.prev_num) }}" class="btn btn-secondary btn-sm">Anterior</a>
+        {% endif %}
+        <span class="table-info">Pagina {{ logs.page }} de {{ logs.pages }}</span>
+        {% if logs.has_next %}
+        <a href="{{ url_for('admin.audit_log', page=logs.next_num) }}" class="btn btn-secondary btn-sm">Siguiente</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

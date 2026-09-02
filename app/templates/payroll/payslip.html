@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo de Pago - {{ employee.first_name }} {{ employee.last_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #fff; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        .payslip { max-width: 700px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+        .payslip-header { background: #0078d4; color: #fff; padding: 24px 32px; text-align: center; }
+        .payslip-header h1 { margin: 0 0 4px 0; font-size: 20px; font-weight: 700; }
+        .payslip-header p { margin: 0; font-size: 13px; opacity: 0.9; }
+        .payslip-body { padding: 24px 32px; }
+        .payslip-section { margin-bottom: 20px; }
+        .payslip-section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #605e5c; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e0e0e0; }
+        .payslip-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+        .payslip-row-label { color: #605e5c; }
+        .payslip-row-value { font-weight: 500; color: #1a1a1a; }
+        .payslip-row.income .payslip-row-value { color: #107c10; }
+        .payslip-row.deduction .payslip-row-value { color: #d13438; }
+        .payslip-divider { border-top: 1px solid #e0e0e0; margin: 8px 0; }
+        .payslip-total { display: flex; justify-content: space-between; padding: 12px 0; font-size: 16px; font-weight: 700; }
+        .payslip-total-value { color: #0078d4; }
+        .payslip-footer { background: #f5f5f5; padding: 16px 32px; font-size: 12px; color: #605e5c; text-align: center; }
+        .payslip-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+        .payslip-info-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+        .payslip-info-label { color: #605e5c; }
+        .payslip-info-value { font-weight: 500; color: #1a1a1a; }
+        .print-actions { text-align: center; margin: 20px 0; }
+        .print-actions button { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; margin: 0 8px; }
+        .btn-print { background: #0078d4; color: #fff; }
+        .btn-print:hover { background: #106ebe; }
+        .btn-back { background: #e1e1e1; color: #1a1a1a; }
+        .btn-back:hover { background: #d1d1d1; }
+        @media print {
+            .print-actions { display: none; }
+            body { padding: 0; }
+            .payslip { border: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-actions">
+        <button class="btn-back" onclick="window.history.back()">Volver</button>
+        <button class="btn-print" onclick="window.print()">Imprimir</button>
+    </div>
+
+    <div class="payslip">
+        <div class="payslip-header">
+            <h1>NicaOrder</h1>
+            <p>Sistema de Gestion Empresarial - Recibo de Pago</p>
+        </div>
+
+        <div class="payslip-body">
+            <div class="payslip-section">
+                <div class="payslip-section-title">Datos del Empleado</div>
+                <div class="payslip-info-grid">
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Nombre:</span>
+                        <span class="payslip-info-value">{{ employee.first_name }} {{ employee.last_name }}</span>
+                    </div>
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Codigo:</span>
+                        <span class="payslip-info-value">{{ employee.employee_code }}</span>
+                    </div>
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Departamento:</span>
+                        <span class="payslip-info-value">{{ employee.department.name }}</span>
+                    </div>
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Cargo:</span>
+                        <span class="payslip-info-value">{{ employee.position.name }}</span>
+                    </div>
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Identificacion:</span>
+                        <span class="payslip-info-value">{{ employee.identity_number }}</span>
+                    </div>
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Periodo:</span>
+                        <span class="payslip-info-value">{{ month_names[period.month] }} {{ period.year }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payslip-section">
+                <div class="payslip-section-title">Ingresos</div>
+                <div class="payslip-row">
+                    <span class="payslip-row-label">Salario Base</span>
+                    <span class="payslip-row-value">C$ {{ "%.2f"|format(item.base_salary) }}</span>
+                </div>
+                {% if item.overtime > 0 %}
+                <div class="payslip-row income">
+                    <span class="payslip-row-label">Horas Extra</span>
+                    <span class="payslip-row-value">+C$ {{ "%.2f"|format(item.overtime) }}</span>
+                </div>
+                {% endif %}
+                {% if item.bonuses > 0 %}
+                <div class="payslip-row income">
+                    <span class="payslip-row-label">Bonificaciones</span>
+                    <span class="payslip-row-value">+C$ {{ "%.2f"|format(item.bonuses) }}</span>
+                </div>
+                {% endif %}
+                {% if item.commissions > 0 %}
+                <div class="payslip-row income">
+                    <span class="payslip-row-label">Comisiones</span>
+                    <span class="payslip-row-value">+C$ {{ "%.2f"|format(item.commissions) }}</span>
+                </div>
+                {% endif %}
+                <div class="payslip-divider"></div>
+                <div class="payslip-row" style="font-weight:600;">
+                    <span>Total Ingresos</span>
+                    <span>C$ {{ "%.2f"|format(item.gross_salary) }}</span>
+                </div>
+            </div>
+
+            <div class="payslip-section">
+                <div class="payslip-section-title">Deducciones</div>
+                <div class="payslip-row deduction">
+                    <span class="payslip-row-label">INSS Laboral (7%)</span>
+                    <span class="payslip-row-value">-C$ {{ "%.2f"|format(item.employee_inss) }}</span>
+                </div>
+                <div class="payslip-row deduction">
+                    <span class="payslip-row-label">Impuesto a la Renta</span>
+                    <span class="payslip-row-value">-C$ {{ "%.2f"|format(item.monthly_income_tax) }}</span>
+                </div>
+                {% if item.other_deductions > 0 %}
+                <div class="payslip-row deduction">
+                    <span class="payslip-row-label">Otras Deducciones</span>
+                    <span class="payslip-row-value">-C$ {{ "%.2f"|format(item.other_deductions) }}</span>
+                </div>
+                {% endif %}
+                <div class="payslip-divider"></div>
+                <div class="payslip-row" style="font-weight:600;">
+                    <span>Total Deducciones</span>
+                    <span style="color:#d13438;">-C$ {{ "%.2f"|format(item.employee_inss + item.monthly_income_tax + item.other_deductions) }}</span>
+                </div>
+            </div>
+
+            <div class="payslip-section">
+                <div class="payslip-total">
+                    <span>Salario Neto</span>
+                    <span class="payslip-total-value">C$ {{ "%.2f"|format(item.net_salary) }}</span>
+                </div>
+            </div>
+
+            <div class="payslip-section">
+                <div class="payslip-section-title">Informacion de Pago</div>
+                <div class="payslip-info-grid">
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Estado:</span>
+                        <span class="payslip-info-value">
+                            {% if item.payment_status == 'PAGADO' %}Pagado{% else %}Pendiente{% endif %}
+                        </span>
+                    </div>
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Fecha de Pago:</span>
+                        <span class="payslip-info-value">
+                            {% if item.payment_date %}{{ item.payment_date.strftime('%d/%m/%Y') }}{% else %}Pendiente{% endif %}
+                        </span>
+                    </div>
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Metodo de Pago:</span>
+                        <span class="payslip-info-value">
+                            {% if item.payment_method %}{{ payment_methods.get(item.payment_method, item.payment_method) }}{% else %}Pendiente{% endif %}
+                        </span>
+                    </div>
+                    <div class="payslip-info-item">
+                        <span class="payslip-info-label">Nomina:</span>
+                        <span class="payslip-info-value">#{{ payroll.id }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="payslip-footer">
+            NicaOrder - Sistema de Gestion Empresarial | Recibo de Pago | {{ month_names[period.month] }} {{ period.year }}
+        </div>
+    </div>
+</body>
+</html>

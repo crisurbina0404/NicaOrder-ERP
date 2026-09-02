@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Productos Mas Vendidos - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Productos Mas Vendidos{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card filter-card">
+    <form method="GET" action="{{ url_for('reports.ventas_productos') }}" class="filter-form">
+        <div class="filter-group">
+            <label>Desde</label>
+            <input type="date" name="start" value="{{ start }}">
+        </div>
+        <div class="filter-group">
+            <label>Hasta</label>
+            <input type="date" name="end" value="{{ end }}">
+        </div>
+        <div class="filter-group">
+            <label>Limite</label>
+            <select name="limit">
+                <option value="10" {{ 'selected' if request.args.get('limit') == '10' }}>Top 10</option>
+                <option value="20" {{ 'selected' if not request.args.get('limit') or request.args.get('limit') == '20' }}>Top 20</option>
+                <option value="50" {{ 'selected' if request.args.get('limit') == '50' }}>Top 50</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">search</span>
+            Filtrar
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Producto</th>
+                    <th>Codigo</th>
+                    <th class="text-right">Unidades Vendidas</th>
+                    <th class="text-right">Total Vendido</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, code, qty, total in results %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><div class="cell-primary">{{ name }}</div></td>
+                    <td><code class="code-badge">{{ code }}</code></td>
+                    <td class="text-right"><strong>{{ qty }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(total or 0) }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

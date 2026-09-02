@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if is_edit else 'Nuevo' }} Rol - NicaOrder{% endblock %}
+{% block page_title %}{{ 'Editar' if is_edit else 'Nuevo' }} Rol{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('admin.roles') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('admin.role_edit', role_id=role.id) if is_edit else url_for('admin.role_create') }}" novalidate>
+        <div class="form-section">
+            <h3 class="section-title">Datos del Rol</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name">Nombre <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" value="{{ form_data.name if form_data.name is defined else (role.name if is_edit else '') }}" required maxlength="50" placeholder="Ej: Gerente">
+                </div>
+                <div class="form-group full-width">
+                    <label for="description">Descripcion</label>
+                    <input type="text" id="description" name="description" value="{{ form_data.description if form_data.description is defined else (role.description if is_edit else '') }}" maxlength="200" placeholder="Descripcion del rol">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Permisos</h3>
+            <div class="form-grid">
+                {% for p in permissions %}
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="permissions" value="{{ p.id }}"
+                            {% if is_edit and p in role.permissions %}checked{% endif %}>
+                        <span class="checkbox-text">{{ p.name }}</span>
+                        <span class="cell-secondary">{{ p.description }}</span>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('admin.roles') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">{{ 'save' if is_edit else 'add' }}</span>
+                {{ 'Guardar Cambios' if is_edit else 'Crear Rol' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

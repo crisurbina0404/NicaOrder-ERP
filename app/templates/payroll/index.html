@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Nomina - NicaOrder{% endblock %}
+{% block page_title %}Periodos de Nomina{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('payroll.create_period') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">add</span>
+        Nuevo Periodo
+    </a>
+    <a href="{{ url_for('payroll.history') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">history</span>
+        Historial
+    </a>
+    <a href="{{ url_for('payroll.parameters') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">tune</span>
+        Parametros
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="section-title">Periodos Registrados</h3>
+    </div>
+
+    {% if periods %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Periodo</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Estado</th>
+                    <th>Empleados</th>
+                    <th>Total Neto</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for period in periods %}
+                {% set payroll = period.payrolls[0] if period.payrolls else None %}
+                <tr>
+                    <td>
+                        <div class="cell-primary">{{ month_names[period.month] }} {{ period.year }}</div>
+                    </td>
+                    <td>{{ period.start_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ period.end_date.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if period.status == 'ABIERTO' %}
+                        <span class="badge badge-borrador">{{ period.status }}</span>
+                        {% elif period.status == 'CALCULADA' %}
+                        <span class="badge badge-confirmada">{{ period.status }}</span>
+                        {% elif period.status == 'APROBADA' %}
+                        <span class="badge badge-recibida">{{ period.status }}</span>
+                        {% elif period.status == 'PAGADA' %}
+                        <span class="badge badge-pagada">{{ period.status }}</span>
+                        {% elif period.status == 'ANULADA' %}
+                        <span class="badge badge-cancelada">{{ period.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ payroll.items|length if payroll else '-' }}</td>
+                    <td class="text-right">
+                        {% if payroll %}C$ {{ "%.2f"|format(payroll.total_net) }}{% else %}-{% endif %}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            {% if payroll %}
+                            <a href="{{ url_for('payroll.detail', payroll_id=payroll.id) }}" class="btn btn-secondary btn-sm">
+                                <span class="material-icons-outlined">visibility</span>
+                                Ver
+                            </a>
+                            {% endif %}
+                            {% if period.status == 'ABIERTO' %}
+                            <a href="{{ url_for('payroll.adjustments', period_id=period.id) }}" class="btn btn-secondary btn-sm">
+                                <span class="material-icons-outlined">edit_note</span>
+                                Novedades
+                            </a>
+                            <a href="{{ url_for('payroll.calculate') }}" class="btn btn-primary btn-sm">
+                                <span class="material-icons-outlined">calculate</span>
+                                Calcular
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">payments</span>
+        <p>No hay periodos registrados.</p>
+        <a href="{{ url_for('payroll.create_period') }}" class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">add</span>
+            Crear Primer Periodo
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

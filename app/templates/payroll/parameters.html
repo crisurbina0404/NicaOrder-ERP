@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Parametros de Nomina - NicaOrder{% endblock %}
+{% block page_title %}Parametros de Nomina{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('payroll.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3 class="section-title">Parametros de Nomina</h3>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Parametro</th>
+                        <th>Valor</th>
+                        <th>Descripcion</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for param in parameters %}
+                    <tr>
+                        <td><code class="code-badge">{{ param.name }}</code></td>
+                        <td class="text-right">
+                            {% if 'PORCENTAJE' in param.name or param.name.startswith('INSS') or param.name.startswith('INATEC') %}
+                                {{ param.value }}%
+                            {% else %}
+                                C$ {{ "%.2f"|format(param.value) }}
+                            {% endif %}
+                        </td>
+                        <td style="font-size:13px;">{{ param.description or '-' }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-success' if param.is_active else 'badge-inactive' }}">
+                                {{ 'Activo' if param.is_active else 'Inactivo' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Tramos del Impuesto a la Renta (Ley 822)</h3>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Ano</th>
+                        <th>Limite Inferior</th>
+                        <th>Limite Superior</th>
+                        <th>Impuesto Base</th>
+                        <th>% Exceso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bracket in brackets %}
+                    <tr>
+                        <td>{{ bracket.year }}</td>
+                        <td class="text-right">C$ {{ "%.2f"|format(bracket.lower_limit) }}</td>
+                        <td class="text-right">{% if bracket.upper_limit %}C$ {{ "%.2f"|format(bracket.upper_limit) }}{% else %}Sin limite{% endif %}</td>
+                        <td class="text-right">C$ {{ "%.2f"|format(bracket.base_tax) }}</td>
+                        <td class="text-right">{{ bracket.excess_percentage }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

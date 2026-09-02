@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Roles - NicaOrder{% endblock %}
+{% block page_title %}Roles y Permisos{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('admin.role_create') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">add</span>
+        Nuevo Rol
+    </a>
+</div>
+
+<div class="card">
+    {% if roles %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Rol</th>
+                    <th>Descripcion</th>
+                    <th>Permisos</th>
+                    <th>Usuarios</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in roles %}
+                <tr>
+                    <td><strong>{{ r.name }}</strong></td>
+                    <td>{{ r.description or '-' }}</td>
+                    <td>
+                        {% for p in r.permissions %}
+                        <span class="badge badge-borrador" style="margin: 1px;">{{ p.name }}</span>
+                        {% endfor %}
+                        {% if not r.permissions %}
+                        <span class="text-muted">Sin permisos</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.users|length }}</td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('admin.role_edit', role_id=r.id) }}" class="btn btn-icon" title="Editar">
+                                <span class="material-icons-outlined">edit</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ roles|length }} rol(es)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">admin_panel_settings</span>
+        <h2>No hay roles</h2>
+        <p>Registre su primer rol haciendo clic en el boton superior.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

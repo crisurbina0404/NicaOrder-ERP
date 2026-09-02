@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if is_edit else 'Nuevo' }} Producto - NicaOrder{% endblock %}
+{% block page_title %}{{ 'Editar' if is_edit else 'Nuevo' }} Producto{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('products.list') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('products.edit', product_id=product.id) if is_edit else url_for('products.create') }}" class="product-form" novalidate>
+        <div class="form-section">
+            <h3 class="section-title">Informacion Basica</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="code">Codigo <span class="required">*</span></label>
+                    <input type="text" id="code" name="code" value="{{ form_data.code if form_data.code is defined else (product.code if is_edit else '') }}" required maxlength="50" placeholder="Ej: PP-001">
+                </div>
+                <div class="form-group">
+                    <label for="name">Nombre <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" value="{{ form_data.name if form_data.name is defined else (product.name if is_edit else '') }}" required maxlength="150" placeholder="Nombre del producto">
+                </div>
+                <div class="form-group full-width">
+                    <label for="description">Descripcion</label>
+                    <textarea id="description" name="description" rows="2" maxlength="300" placeholder="Descripcion breve del producto">{{ form_data.description if form_data.description is defined else (product.description if is_edit else '') }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Clasificacion</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="category_id">Categoria <span class="required">*</span></label>
+                    <select id="category_id" name="category_id" required>
+                        <option value="">Seleccione una categoria</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {{ 'selected' if (form_data.category_id is defined and form_data.category_id|string == cat.id|string) or (is_edit and product.category_id == cat.id) }}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="brand_id">Marca <span class="required">*</span></label>
+                    <select id="brand_id" name="brand_id" required>
+                        <option value="">Seleccione una marca</option>
+                        {% for brand in brands %}
+                        <option value="{{ brand.id }}" {{ 'selected' if (form_data.brand_id is defined and form_data.brand_id|string == brand.id|string) or (is_edit and product.brand_id == brand.id) }}>{{ brand.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="presentation">Presentacion</label>
+                    <input type="text" id="presentation" name="presentation" value="{{ form_data.presentation if form_data.presentation is defined else (product.presentation if is_edit else '') }}" maxlength="100" placeholder="Ej: Caja x 100 unidades">
+                </div>
+                <div class="form-group">
+                    <label for="unit">Unidad <span class="required">*</span></label>
+                    <input type="text" id="unit" name="unit" value="{{ form_data.unit if form_data.unit is defined else (product.unit if is_edit else '') }}" required maxlength="30" placeholder="Ej: Caja, Unidad, Frasco">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Precios y Stock</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="purchase_price">Precio de Compra ($) <span class="required">*</span></label>
+                    <input type="number" id="purchase_price" name="purchase_price" value="{{ form_data.purchase_price if form_data.purchase_price is defined else (product.purchase_price if is_edit else '') }}" required step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="sale_price">Precio de Venta ($) <span class="required">*</span></label>
+                    <input type="number" id="sale_price" name="sale_price" value="{{ form_data.sale_price if form_data.sale_price is defined else (product.sale_price if is_edit else '') }}" required step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="minimum_stock">Stock Minimo <span class="required">*</span></label>
+                    <input type="number" id="minimum_stock" name="minimum_stock" value="{{ form_data.minimum_stock if form_data.minimum_stock is defined else (product.minimum_stock if is_edit else 0) }}" required min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="sanitary_registration">Registro Sanitario</label>
+                    <input type="text" id="sanitary_registration" name="sanitary_registration" value="{{ form_data.sanitary_registration if form_data.sanitary_registration is defined else (product.sanitary_registration if is_edit else '') }}" maxlength="100" placeholder="Ej: RR-2024-001">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('products.list') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">{{ 'save' if is_edit else 'add' }}</span>
+                {{ 'Guardar Cambios' if is_edit else 'Registrar Producto' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if is_edit else 'Nuevo' }} Proveedor - NicaOrder{% endblock %}
+{% block page_title %}{{ 'Editar' if is_edit else 'Nuevo' }} Proveedor{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('suppliers.list') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('suppliers.edit', supplier_id=supplier.id) if is_edit else url_for('suppliers.create') }}" novalidate>
+        <div class="form-section">
+            <h3 class="section-title">Informacion del Proveedor</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name">Nombre <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" value="{{ form_data.name if form_data.name is defined else (supplier.name if is_edit else '') }}" required maxlength="150" placeholder="Nombre del proveedor">
+                </div>
+                <div class="form-group">
+                    <label for="tax_id">NIT / RUC <span class="required">*</span></label>
+                    <input type="text" id="tax_id" name="tax_id" value="{{ form_data.tax_id if form_data.tax_id is defined else (supplier.tax_id if is_edit else '') }}" required maxlength="50" placeholder="Ej: J001234567">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Telefono</label>
+                    <input type="text" id="phone" name="phone" value="{{ form_data.phone if form_data.phone is defined else (supplier.phone if is_edit else '') }}" maxlength="30" placeholder="Ej: 2255-1234">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="{{ form_data.email if form_data.email is defined else (supplier.email if is_edit else '') }}" maxlength="120" placeholder="correo@proveedor.com">
+                </div>
+                <div class="form-group full-width">
+                    <label for="address">Direccion</label>
+                    <input type="text" id="address" name="address" value="{{ form_data.address if form_data.address is defined else (supplier.address if is_edit else '') }}" maxlength="300" placeholder="Direccion completa">
+                </div>
+                <div class="form-group">
+                    <label for="contact_person">Persona de Contacto</label>
+                    <input type="text" id="contact_person" name="contact_person" value="{{ form_data.contact_person if form_data.contact_person is defined else (supplier.contact_person if is_edit else '') }}" maxlength="150" placeholder="Nombre del contacto">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('suppliers.list') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">{{ 'save' if is_edit else 'add' }}</span>
+                {{ 'Guardar Cambios' if is_edit else 'Registrar Proveedor' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

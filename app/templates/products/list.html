@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Productos - NicaOrder{% endblock %}
+{% block page_title %}Productos{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('products.create') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">add</span>
+        Nuevo Producto
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('products.list') }}" class="toolbar-form">
+            <div class="search-group">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" name="search" value="{{ search }}" placeholder="Buscar por codigo o nombre..." class="search-input">
+            </div>
+            <select name="category_id" class="filter-select" onchange="this.form.submit()">
+                <option value="">Todas las categorias</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {{ 'selected' if selected_category == cat.id|string }}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">search</span>
+                Buscar
+            </button>
+            {% if search or selected_category %}
+            <a href="{{ url_for('products.list') }}" class="btn btn-secondary">
+                <span class="material-icons-outlined">clear_all</span>
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if products %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Nombre</th>
+                    <th>Categoria</th>
+                    <th>Marca</th>
+                    <th>Unidad</th>
+                    <th>P. Compra</th>
+                    <th>P. Venta</th>
+                    <th>Stock Min.</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr class="{{ '' if product.is_active else 'row-inactive' }}">
+                    <td><code class="code-badge">{{ product.code }}</code></td>
+                    <td>
+                        <div class="cell-primary">{{ product.name }}</div>
+                        {% if product.description %}
+                        <div class="cell-secondary">{{ product.description }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ product.category.name }}</td>
+                    <td>{{ product.brand.name }}</td>
+                    <td>{{ product.unit }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(product.purchase_price) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(product.sale_price) }}</td>
+                    <td class="text-center">{{ product.minimum_stock }}</td>
+                    <td>
+                        <span class="badge {{ 'badge-success' if product.is_active else 'badge-inactive' }}">
+                            {{ 'Activo' if product.is_active else 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('products.edit', product_id=product.id) }}" class="btn btn-icon" title="Editar">
+                                <span class="material-icons-outlined">edit</span>
+                            </a>
+                            <form method="POST" action="{{ url_for('products.toggle', product_id=product.id) }}" class="inline-form">
+                                <button type="submit" class="btn btn-icon" title="{{ 'Desactivar' if product.is_active else 'Activar' }}" onclick="return confirm('{{ 'Desactivar' if product.is_active else 'Activar' }} este producto?')">
+                                    <span class="material-icons-outlined">{{ 'toggle_on' if product.is_active else 'toggle_off' }}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ products|length }} producto(s)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">inventory_2</span>
+        <h2>No hay productos</h2>
+        <p>Registre su primer producto haciendo clic en el boton superior.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

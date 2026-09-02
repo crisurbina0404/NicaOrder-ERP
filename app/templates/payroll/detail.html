@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Nomina #{{ payroll.id }} - {{ month_names[period.month] }} {{ period.year }} - NicaOrder{% endblock %}
+{% block page_title %}Nomina #{{ payroll.id }} - {{ month_names[period.month] }} {{ period.year }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('payroll.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+    {% if payroll.status == 'CALCULADA' %}
+    <form method="POST" action="{{ url_for('payroll.update_status', payroll_id=payroll.id) }}" class="inline-form">
+        <input type="hidden" name="status" value="APROBADA">
+        <button type="submit" class="btn btn-primary" onclick="return confirm('Aprobar esta nomina?')">
+            <span class="material-icons-outlined">check_circle</span>
+            Aprobar
+        </button>
+    </form>
+    {% endif %}
+    {% if payroll.status == 'APROBADA' %}
+    <form method="POST" action="{{ url_for('payroll.update_status', payroll_id=payroll.id) }}" class="inline-form">
+        <input type="hidden" name="status" value="PAGADA">
+        <button type="submit" class="btn btn-primary" onclick="return confirm('Marcar esta nomina como pagada?')">
+            <span class="material-icons-outlined">payment</span>
+            Marcar Pagada
+        </button>
+    </form>
+    {% endif %}
+    {% if payroll.status not in ('PAGADA', 'ANULADA') %}
+    <form method="POST" action="{{ url_for('payroll.update_status', payroll_id=payroll.id) }}" class="inline-form">
+        <input type="hidden" name="status" value="ANULADA">
+        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Anular esta nomina? Esta accion es irreversible.')">
+            <span class="material-icons-outlined">cancel</span>
+            Anular
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<div class="summary-cards">
+    <div class="summary-card">
+        <span class="material-icons-outlined summary-icon">groups</span>
+        <div class="summary-info">
+            <div class="summary-label">Empleados</div>
+            <div class="summary-value">{{ items|length }}</div>
+        </div>
+    </div>
+    <div class="summary-card summary-success">
+        <span class="material-icons-outlined summary-icon">trending_up</span>
+        <div class="summary-info">
+            <div class="summary-label">Ingresos</div>
+            <div class="summary-value">C$ {{ "%.2f"|format(payroll.total_income) }}</div>
+        </div>
+    </div>
+    <div class="summary-card summary-danger">
+        <span class="material-icons-outlined summary-icon">trending_down</span>
+        <div class="summary-info">
+            <div class="summary-label">Deducciones</div>
+            <div class="summary-value">C$ {{ "%.2f"|format(payroll.total_deductions) }}</div>
+        </div>
+    </div>
+    <div class="summary-card summary-primary">
+        <span class="material-icons-outlined summary-icon">account_balance_wallet</span>
+        <div class="summary-info">
+            <div class="summary-label">Neto Total</div>
+            <div class="summary-value">C$ {{ "%.2f"|format(payroll.total_net) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="section-title">Detalle por Empleado</h3>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th class="text-right">Salario Base</th>
+                    <th class="text-right">Ingresos Adicionales</th>
+                    <th class="text-right">Salario Bruto</th>
+                    <th class="text-right">INSS</th>
+                    <th class="text-right">IR Mensual</th>
+                    <th class="text-right">Otras Ded.</th>
+                    <th class="text-right">Salario Neto</th>
+                    <th>Estado Pago</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                {% set emp = item.employee %}
+                <tr>
+                    <td>
+                        <div class="cell-primary">{{ emp.first_name }} {{ emp.last_name }}</div>
+                        <div class="cell-secondary">{{ emp.employee_code }} - {{ emp.department.name }}</div>
+                    </td>
+                    <td class="text-right">C$ {{ "%.2f"|format(item.base_salary) }}</td>
+                    <td class="text-right">
+                        {% set extras = item.overtime + item.bonuses + item.commissions %}
+                        {% if extras > 0 %}
+                        <span class="text-entry">+C$ {{ "%.2f"|format(extras) }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(item.gross_salary) }}</strong></td>
+                    <td class="text-right text-danger">-C$ {{ "%.2f"|format(item.employee_inss) }}</td>
+                    <td class="text-right text-danger">-C$ {{ "%.2f"|format(item.monthly_income_tax) }}</td>
+                    <td class="text-right">
+                        {% if item.other_deductions > 0 %}
+                        <span class="text-exit">-C$ {{ "%.2f"|format(item.other_deductions) }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(item.net_salary) }}</strong></td>
+                    <td>
+                        {% if item.payment_status == 'PAGADO' %}
+                        <span class="badge badge-pagada">Pagado</span>
+                        {% else %}
+                        <span class="badge badge-borrador">Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('payroll.employee_detail', payroll_id=payroll.id, employee_id=emp.id) }}" class="btn btn-secondary btn-sm" title="Detalle">
+                                <span class="material-icons-outlined">person_search</span>
+                            </a>
+                            <a href="{{ url_for('payroll.payslip', payroll_id=payroll.id, employee_id=emp.id) }}" class="btn btn-secondary btn-sm" title="Recibo de pago">
+                                <span class="material-icons-outlined">receipt</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totals-row">
+                    <td colspan="1"><strong>TOTALES</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(items|sum(attribute='base_salary')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(items|sum(attribute='overtime') + items|sum(attribute='bonuses') + items|sum(attribute='commissions')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(payroll.total_income) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(items|sum(attribute='employee_inss')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(items|sum(attribute='monthly_income_tax')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(items|sum(attribute='other_deductions')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(payroll.total_net) }}</strong></td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

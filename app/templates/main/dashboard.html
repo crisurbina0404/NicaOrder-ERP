@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - NicaOrder{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+{% set d = dashboard_data %}
+
+<div class="dashboard-stats">
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">point_of_sale</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.today_sales_total) }}</div>
+            <div class="stat-label">Ventas Hoy ({{ d.today_sales_count }})</div>
+        </div>
+    </div>
+    <div class="stat-card stat-green">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">trending_up</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.month_sales_total) }}</div>
+            <div class="stat-label">Ventas del Mes ({{ d.month_sales_count }})</div>
+        </div>
+    </div>
+    <div class="stat-card stat-orange">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">shopping_cart</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.month_purchases_total) }}</div>
+            <div class="stat-label">Compras del Mes</div>
+        </div>
+    </div>
+    <div class="stat-card stat-purple">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">inventory_2</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">{{ d.total_products }}</div>
+            <div class="stat-label">Productos Activos</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-alerts">
+    {% if d.low_stock_count > 0 %}
+    <div class="alert-card alert-warning">
+        <span class="material-icons-outlined">warning</span>
+        <div class="alert-body">
+            <strong>{{ d.low_stock_count }} producto(s) con stock bajo</strong>
+            <div class="alert-detail">
+                {% for p in d.low_stock_products %}
+                <span>{{ p.name }}{% if not loop.last %}, {% endif %}</span>
+                {% endfor %}
+                {% if d.low_stock_count > 5 %}
+                <span>y {{ d.low_stock_count - 5 }} mas...</span>
+                {% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('reports.inventario_stock_bajo') }}" class="btn btn-sm btn-secondary">Ver</a>
+    </div>
+    {% endif %}
+
+    {% if d.expiring_soon > 0 %}
+    <div class="alert-card alert-danger">
+        <span class="material-icons-outlined">schedule</span>
+        <div class="alert-body">
+            <strong>{{ d.expiring_soon }} lote(s) proximos a vencer</strong>
+            <div class="alert-detail">Lotes que vencen en los proximos 90 dias</div>
+        </div>
+        <a href="{{ url_for('reports.inventario_proximos_vencer') }}" class="btn btn-sm btn-secondary">Ver</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3 class="section-title">Nomina del Mes</h3>
+        {% if d.current_period %}
+        <div class="dashboard-info-row">
+            <span>Periodo</span>
+            <strong>{{ d.month_names[d.current_period.month] }} {{ d.current_period.year }}</strong>
+        </div>
+        <div class="dashboard-info-row">
+            <span>Estado</span>
+            <span class="badge badge-{{ 'pagada' if d.current_period.status == 'PAGADA' else 'confirmada' if d.current_period.status == 'CALCULADA' else 'borrador' }}">{{ d.current_period.status }}</span>
+        </div>
+        {% endif %}
+        <div class="dashboard-info-row">
+            <span>Empleados Activos</span>
+            <strong>{{ d.active_employees }}</strong>
+        </div>
+        <div class="dashboard-info-row">
+            <span>Total Planilla</span>
+            <strong>C$ {{ "%.2f"|format(d.payroll_total) }}</strong>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Ultimas Ventas</h3>
+        {% if d.recent_sales %}
+        {% for s in d.recent_sales %}
+        <div class="dashboard-list-item">
+            <div>
+                <div class="cell-primary">#{{ s.id }} - {{ s.customer.name }}</div>
+                <div class="cell-secondary">{{ s.sale_date.strftime('%d/%m/%Y') }} | {{ s.payment_method }}</div>
+            </div>
+            <strong>C$ {{ "%.2f"|format(s.total) }}</strong>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">No hay ventas registradas.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Ultimos Movimientos</h3>
+        {% if d.recent_movements %}
+        {% for m in d.recent_movements %}
+        <div class="dashboard-list-item">
+            <div>
+                <div class="cell-primary">{{ m.product.name }}</div>
+                <div class="cell-secondary">{{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+            </div>
+            <span class="badge {{ 'badge-pagada' if m.movement_type == 'ENTRADA' else 'badge-cancelada' }}">
+                {{ m.movement_type }} {{ m.quantity }}
+            </span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">No hay movimientos registrados.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

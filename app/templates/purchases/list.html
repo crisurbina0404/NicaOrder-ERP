@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Compras - NicaOrder{% endblock %}
+{% block page_title %}Compras{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('purchases.create') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">add</span>
+        Nueva Compra
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('purchases.list') }}" class="toolbar-form">
+            <div class="search-group">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" name="search" value="{{ search }}" placeholder="Buscar por proveedor o numero..." class="search-input">
+            </div>
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                {% for s in valid_statuses %}
+                <option value="{{ s }}" {{ 'selected' if selected_status == s }}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">search</span>
+                Buscar
+            </button>
+            {% if search or selected_status %}
+            <a href="{{ url_for('purchases.list') }}" class="btn btn-secondary">
+                <span class="material-icons-outlined">clear_all</span>
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if purchases %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Proveedor</th>
+                    <th>Fecha</th>
+                    <th>Subtotal</th>
+                    <th>Descuento</th>
+                    <th>Impuesto</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchase in purchases %}
+                <tr>
+                    <td><code class="code-badge">{{ purchase.id }}</code></td>
+                    <td>
+                        <div class="cell-primary">{{ purchase.supplier.name }}</div>
+                        <div class="cell-secondary">{{ purchase.supplier.tax_id }}</div>
+                    </td>
+                    <td>{{ purchase.purchase_date.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(purchase.subtotal) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(purchase.discount) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(purchase.tax) }}</td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(purchase.total) }}</strong></td>
+                    <td>
+                        <span class="badge badge-{{ purchase.status|lower }}">
+                            {{ purchase.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('purchases.detail', purchase_id=purchase.id) }}" class="btn btn-icon" title="Ver detalle">
+                                <span class="material-icons-outlined">visibility</span>
+                            </a>
+                            {% if purchase.status == 'BORRADOR' %}
+                            <a href="{{ url_for('purchases.edit', purchase_id=purchase.id) }}" class="btn btn-icon" title="Editar">
+                                <span class="material-icons-outlined">edit</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ purchases|length }} compra(s)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">shopping_cart</span>
+        <h2>No hay compras</h2>
+        <p>Registre su primera compra haciendo clic en el boton superior.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

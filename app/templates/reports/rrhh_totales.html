@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Totales de Nomina - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Totales de Nomina{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card filter-card">
+    <form method="GET" action="{{ url_for('reports.rrhh_totales') }}" class="filter-form">
+        <div class="filter-group">
+            <label>Desde</label>
+            <input type="date" name="start" value="{{ start }}">
+        </div>
+        <div class="filter-group">
+            <label>Hasta</label>
+            <input type="date" name="end" value="{{ end }}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">search</span>
+            Filtrar
+        </button>
+    </form>
+</div>
+
+<div class="summary-cards" style="grid-template-columns:repeat(3,1fr);">
+    <div class="summary-card summary-primary">
+        <span class="material-icons-outlined summary-icon">trending_up</span>
+        <div class="summary-info">
+            <div class="summary-label">Total Bruto</div>
+            <div class="summary-value">C$ {{ "%.2f"|format(gross) }}</div>
+        </div>
+    </div>
+    <div class="summary-card summary-danger">
+        <span class="material-icons-outlined summary-icon">trending_down</span>
+        <div class="summary-info">
+            <div class="summary-label">Total Deducciones</div>
+            <div class="summary-value">C$ {{ "%.2f"|format(inss + ir + other) }}</div>
+        </div>
+    </div>
+    <div class="summary-card summary-success">
+        <span class="material-icons-outlined summary-icon">account_balance_wallet</span>
+        <div class="summary-info">
+            <div class="summary-label">Total Neto</div>
+            <div class="summary-value">C$ {{ "%.2f"|format(net) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="section-title">Desglose de Deducciones</h3>
+    <div class="totals-detail">
+        <div class="total-row">
+            <span>Total Bruto ({{ count }} registros)</span>
+            <strong>C$ {{ "%.2f"|format(gross) }}</strong>
+        </div>
+        <div class="total-row">
+            <span>- INSS Laboral</span>
+            <span class="text-exit">C$ {{ "%.2f"|format(inss) }}</span>
+        </div>
+        <div class="total-row">
+            <span>- Impuesto a la Renta</span>
+            <span class="text-exit">C$ {{ "%.2f"|format(ir) }}</span>
+        </div>
+        <div class="total-row">
+            <span>- Otras Deducciones</span>
+            <span class="text-exit">C$ {{ "%.2f"|format(other) }}</span>
+        </div>
+        <div class="total-row total-final">
+            <span>Salario Neto Total</span>
+            <strong>C$ {{ "%.2f"|format(net) }}</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Acceso No Autorizado - NicaOrder{% endblock %}
+{% block page_title %}Acceso No Autorizado{% endblock %}
+
+{% block content %}
+<div class="empty-state">
+    <span class="material-icons-outlined empty-icon">block</span>
+    <h2>Acceso No Autorizado</h2>
+    <p>No tiene permisos para acceder a esta seccion.</p>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Volver al Inicio</a>
+</div>
+{% endblock %}

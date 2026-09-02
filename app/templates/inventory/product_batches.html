@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Lotes - {{ product.name }} - NicaOrder{% endblock %}
+{% block page_title %}Lotes: {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('inventory.stock') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card">
+    <div class="product-info-header">
+        <div>
+            <span class="code-badge">{{ product.code }}</span>
+            <span class="cell-secondary" style="margin-left: 8px;">{{ product.category.name }} | {{ product.brand.name }}</span>
+        </div>
+        <div class="stock-summary">
+            <span>Stock Total:</span>
+            <strong>{{ total_stock }} {{ product.unit }}</strong>
+            <span class="cell-secondary" style="margin-left: 12px;">Minimo: {{ product.minimum_stock }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="section-title">Lotes Activos</h3>
+    {% if batches %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Lote</th>
+                    <th>Fecha Venc.</th>
+                    <th>Cantidad Actual</th>
+                    <th>Precio Compra</th>
+                    <th>Compra</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in batches %}
+                <tr class="{{ 'row-expired' if batch.is_expired else ('row-expiring' if batch.is_expiring_soon else '') }}">
+                    <td><code class="code-badge">{{ batch.batch_number }}</code></td>
+                    <td>{{ batch.expiration_date.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-center"><strong>{{ batch.current_quantity }}</strong></td>
+                    <td class="text-right">C$ {{ "%.2f"|format(batch.purchase_price) }}</td>
+                    <td>{{ '#%d'|format(batch.purchase_id) if batch.purchase_id else '-' }}</td>
+                    <td>
+                        {% if batch.is_expired %}
+                        <span class="badge badge-expired">Vencido</span>
+                        {% elif batch.is_expiring_soon %}
+                        <span class="badge badge-expiring">Proximo a Vencer</span>
+                        {% elif batch.current_quantity == 0 %}
+                        <span class="badge badge-empty">Agotado</span>
+                        {% else %}
+                        <span class="badge badge-success">Activo</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">view_list</span>
+        <h2>No hay lotes para este producto</h2>
+        <p>Los lotes se crean al recibir una compra que contenga este producto.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

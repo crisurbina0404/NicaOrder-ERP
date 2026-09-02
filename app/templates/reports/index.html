@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes - NicaOrder{% endblock %}
+{% block page_title %}Centro de Reportes{% endblock %}
+
+{% block content %}
+<div class="reports-grid">
+    <a href="{{ url_for('reports.compras_periodo') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#e3f2fd;color:#1565c0;">shopping_cart</span>
+        <div class="report-info">
+            <div class="report-title">Compras por Periodo</div>
+            <div class="report-desc">Compras filtradas por rango de fechas</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.compras_proveedor') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#e8f5e9;color:#2e7d32;">local_shipping</span>
+        <div class="report-info">
+            <div class="report-title">Compras por Proveedor</div>
+            <div class="report-desc">Total comprado por cada proveedor</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.ventas_periodo') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#fff3e0;color:#e65100;">point_of_sale</span>
+        <div class="report-info">
+            <div class="report-title">Ventas por Periodo</div>
+            <div class="report-desc">Ventas filtradas por rango de fechas</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.ventas_usuario') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#f3e5f5;color:#7b1fa2;">person</span>
+        <div class="report-info">
+            <div class="report-title">Ventas por Usuario</div>
+            <div class="report-desc">Ventas agrupadas por vendedor</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.ventas_productos') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#e0f7fa;color:#00695c;">trending_up</span>
+        <div class="report-info">
+            <div class="report-title">Productos Mas Vendidos</div>
+            <div class="report-desc">Top productos por cantidad vendida</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.ventas_metodos') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#fce4ec;color:#c62828;">credit_card</span>
+        <div class="report-info">
+            <div class="report-title">Metodos de Pago</div>
+            <div class="report-desc">Ventas por metodo de pago</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.inventario_actuales') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#e8eaf6;color:#283593;">inventory</span>
+        <div class="report-info">
+            <div class="report-title">Existencias Actuales</div>
+            <div class="report-desc">Stock actual de todos los productos</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.inventario_stock_bajo') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#fff8e1;color:#f57f17;">warning</span>
+        <div class="report-info">
+            <div class="report-title">Stock Bajo</div>
+            <div class="report-desc">Productos por debajo del minimo</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.inventario_vencidos') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#fbe9e7;color:#bf360c;">event_busy</span>
+        <div class="report-info">
+            <div class="report-title">Productos Vencidos</div>
+            <div class="report-desc">Lotes con fecha de vencimiento pasada</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.inventario_proximos_vencer') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#fff3e0;color:#e65100;">schedule</span>
+        <div class="report-info">
+            <div class="report-title">Proximos a Vencer</div>
+            <div class="report-desc">Lotes que vencen en 90 dias</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.inventario_movimientos') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#e0f2f1;color:#004d40;">swap_horiz</span>
+        <div class="report-info">
+            <div class="report-title">Movimientos por Periodo</div>
+            <div class="report-desc">Entradas y salidas de inventario</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.rrhh_planilla_mes') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#ede7f6;color:#4527a0;">payments</span>
+        <div class="report-info">
+            <div class="report-title">Planilla por Mes</div>
+            <div class="report-desc">Nomina generada por periodo</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.rrhh_pagos_empleado') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#e8f5e9;color:#1b5e20;">badge</span>
+        <div class="report-info">
+            <div class="report-title">Pagos por Empleado</div>
+            <div class="report-desc">Totales por empleado en periodo</div>
+        </div>
+    </a>
+    <a href="{{ url_for('reports.rrhh_totales') }}" class="report-card">
+        <span class="material-icons-outlined report-icon" style="background:#e3f2fd;color:#0d47a1;">account_balance</span>
+        <div class="report-info">
+            <div class="report-title">Totales de Nomina</div>
+            <div class="report-desc">Salarios, deducciones y neto acumulado</div>
+        </div>
+    </a>
+</div>
+{% endblock %}

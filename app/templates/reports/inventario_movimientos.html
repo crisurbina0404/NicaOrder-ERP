@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Movimientos de Inventario - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Movimientos por Periodo{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card filter-card">
+    <form method="GET" action="{{ url_for('reports.inventario_movimientos') }}" class="filter-form">
+        <div class="filter-group">
+            <label>Desde</label>
+            <input type="date" name="start" value="{{ start }}">
+        </div>
+        <div class="filter-group">
+            <label>Hasta</label>
+            <input type="date" name="end" value="{{ end }}">
+        </div>
+        <div class="filter-group">
+            <label>Tipo</label>
+            <select name="type">
+                <option value="">Todos</option>
+                <option value="ENTRADA" {{ 'selected' if movement_type == 'ENTRADA' }}>Entrada</option>
+                <option value="SALIDA" {{ 'selected' if movement_type == 'SALIDA' }}>Salida</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">search</span>
+            Filtrar
+        </button>
+    </form>
+</div>
+
+<div class="summary-cards">
+    <div class="summary-card summary-primary">
+        <span class="material-icons-outlined summary-icon">swap_horiz</span>
+        <div class="summary-info">
+            <div class="summary-label">Total Movimientos</div>
+            <div class="summary-value">{{ movements|length }}</div>
+        </div>
+    </div>
+    <div class="summary-card summary-success">
+        <span class="material-icons-outlined summary-icon">add_circle</span>
+        <div class="summary-info">
+            <div class="summary-label">Entradas</div>
+            <div class="summary-value">{{ movements|selectattr('movement_type', 'equalto', 'ENTRADA')|list|length }}</div>
+        </div>
+    </div>
+    <div class="summary-card summary-danger">
+        <span class="material-icons-outlined summary-icon">remove_circle</span>
+        <div class="summary-info">
+            <div class="summary-label">Salidas</div>
+            <div class="summary-value">{{ movements|selectattr('movement_type', 'equalto', 'SALIDA')|list|length }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Lote</th>
+                    <th>Tipo</th>
+                    <th class="text-right">Cantidad</th>
+                    <th>Descripcion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movements %}
+                <tr>
+                    <td>{{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td><div class="cell-primary">{{ m.product.name }}</div></td>
+                    <td>{{ m.batch.batch_number if m.batch else '-' }}</td>
+                    <td>
+                        <span class="badge {{ 'badge-pagada' if m.movement_type == 'ENTRADA' else 'badge-cancelada' }}">
+                            {{ m.movement_type }}
+                        </span>
+                    </td>
+                    <td class="text-right">
+                        <span class="{{ 'text-entry' if m.movement_type == 'ENTRADA' else 'text-exit' }}">
+                            {{ '+' if m.movement_type == 'ENTRADA' else '-' }}{{ m.quantity }}
+                        </span>
+                    </td>
+                    <td class="text-secondary-sm">{{ m.description or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

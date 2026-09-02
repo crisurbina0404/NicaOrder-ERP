@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Solicitudes Pendientes - NicaOrder{% endblock %}
+{% block page_title %}Solicitudes Pendientes de Aprobacion{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Cuentas Pendientes</h2>
+        <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">
+            <span class="material-icons-outlined">arrow_back</span> Volver
+        </a>
+    </div>
+
+    {% if not users %}
+    <div class="empty-state">
+        <span class="material-icons-outlined" style="font-size:48px;color:#94a3b8;">check_circle</span>
+        <p>No hay solicitudes pendientes.</p>
+    </div>
+    {% else %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Telefono</th>
+                    <th>Rol Solicitado</th>
+                    <th>Fecha Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.phone or '-' }}</td>
+                    <td>{{ user.requested_role.name if user.requested_role else '-' }}</td>
+                    <td>{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else '-' }}</td>
+                    <td>
+                        <div class="action-group">
+                            <form method="POST" action="{{ url_for('admin.user_approve', user_id=user.id) }}" class="inline-form" style="display:inline;">
+                                <select name="role_id" class="filter-select" style="width:auto;display:inline;padding:4px 8px;font-size:13px;">
+                                    <option value="{{ user.requested_role_id }}" selected>{{ user.requested_role.name if user.requested_role else 'Sin rol' }}</option>
+                                    {% for r in user.requested_role.__class__.query.all() if user.requested_role %}
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Aprobar a {{ user.username }}?')">
+                                    <span class="material-icons-outlined" style="font-size:16px;">check</span> Aprobar
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.user_reject', user_id=user.id) }}" class="inline-form" style="display:inline;">
+                                <input type="text" name="reason" placeholder="Motivo (opcional)" class="filter-input" style="width:150px;display:inline;padding:4px 8px;font-size:13px;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Rechazar a {{ user.username }}?')">
+                                    <span class="material-icons-outlined" style="font-size:16px;">close</span> Rechazar
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">{{ users|length }} solicitud(es) pendiente(s)</span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

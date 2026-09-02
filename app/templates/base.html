@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NicaOrder{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% block body %}
+    <div class="app-layout">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-logo">Nica<span class="logo-accent">Order</span></span>
+            </div>
+            <nav class="sidebar-nav">
+                {% for item in menu_items %}
+                {% if item.children %}
+                <div class="nav-group">
+                    <a href="{{ url_for(item.endpoint) if item.endpoint else '#' }}"
+                       class="nav-item {{ 'active' if active_page == item.endpoint else '' }}">
+                        <span class="material-icons-outlined nav-icon">{{ item.icon }}</span>
+                        <span class="nav-label">{{ item.label }}</span>
+                        <span class="material-icons-outlined nav-arrow">expand_more</span>
+                    </a>
+                    <div class="nav-children">
+                        {% for child in item.children %}
+                        <a href="{{ url_for(child.endpoint) if child.endpoint else '#' }}"
+                           class="nav-child {{ 'active' if active_page == child.endpoint else '' }}">
+                            <span class="material-icons-outlined nav-icon">{{ child.icon }}</span>
+                            <span class="nav-label">{{ child.label }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <a href="{{ url_for(item.endpoint) if item.endpoint else '#' }}"
+                   class="nav-item {{ 'active' if active_page == item.endpoint else '' }}">
+                    <span class="material-icons-outlined nav-icon">{{ item.icon }}</span>
+                    <span class="nav-label">{{ item.label }}</span>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-greeting" id="sidebarGreeting"></div>
+                <div class="sidebar-clock" id="sidebarClock">
+                    <span class="clock-time" id="clockTime"></span>
+                    <span class="clock-date" id="clockDate"></span>
+                </div>
+                <div class="user-info">
+                    <span class="material-icons-outlined">account_circle</span>
+                    <div class="user-details">
+                        <span class="user-name">{{ g.user.full_name if g.user else '' }}</span>
+                        <span class="user-role">{{ g.user.role.name if g.user else '' }}</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main-area">
+            <header class="topbar">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <span class="material-icons-outlined">menu</span>
+                </button>
+                <div class="topbar-title">
+                    <h1>{% block page_title %}Inicio{% endblock %}</h1>
+                </div>
+                <div class="topbar-actions">
+                    <form method="POST" action="{{ url_for('auth.logout') }}" style="display:inline;">
+                        <button type="submit" class="btn btn-icon" title="Cerrar sesion" onclick="return confirm('Cerrar sesion?')">
+                            <span class="material-icons-outlined">logout</span>
+                        </button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-container" id="flashContainer">
+                    {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">
+                        <span class="material-icons-outlined flash-icon">
+                            {{ 'check_circle' if category == 'success' else 'error' if category == 'error' else 'warning' if category == 'warning' else 'info' }}
+                        </span>
+                        <span class="flash-message">{{ message }}</span>
+                        <button class="flash-close" onclick="this.parentElement.remove()">
+                            <span class="material-icons-outlined">close</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endblock %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

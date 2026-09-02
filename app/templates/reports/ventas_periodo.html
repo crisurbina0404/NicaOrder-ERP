@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Ventas por Periodo - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Ventas por Periodo{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card filter-card">
+    <form method="GET" action="{{ url_for('reports.ventas_periodo') }}" class="filter-form">
+        <div class="filter-group">
+            <label>Desde</label>
+            <input type="date" name="start" value="{{ start }}">
+        </div>
+        <div class="filter-group">
+            <label>Hasta</label>
+            <input type="date" name="end" value="{{ end }}">
+        </div>
+        <div class="filter-group">
+            <label>Estado</label>
+            <select name="status">
+                <option value="">Todos</option>
+                <option value="BORRADOR" {{ 'selected' if status == 'BORRADOR' }}>Borrador</option>
+                <option value="CONFIRMADA" {{ 'selected' if status == 'CONFIRMADA' }}>Confirmada</option>
+                <option value="CANCELADA" {{ 'selected' if status == 'CANCELADA' }}>Cancelada</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">search</span>
+            Filtrar
+        </button>
+    </form>
+</div>
+
+<div class="summary-cards">
+    <div class="summary-card summary-primary">
+        <span class="material-icons-outlined summary-icon">point_of_sale</span>
+        <div class="summary-info">
+            <div class="summary-label">Total Ventas</div>
+            <div class="summary-value">{{ sales|length }}</div>
+        </div>
+    </div>
+    <div class="summary-card summary-success">
+        <span class="material-icons-outlined summary-icon">attach_money</span>
+        <div class="summary-info">
+            <div class="summary-label">Monto Total</div>
+            <div class="summary-value">C$ {{ "%.2f"|format(total) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Metodo Pago</th>
+                    <th class="text-right">Subtotal</th>
+                    <th class="text-right">Impuesto</th>
+                    <th class="text-right">Total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sales %}
+                <tr>
+                    <td><code class="code-badge">#{{ s.id }}</code></td>
+                    <td>{{ s.customer.name }}</td>
+                    <td>{{ s.sale_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ s.payment_method }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(s.subtotal) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(s.tax) }}</td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(s.total) }}</strong></td>
+                    <td>
+                        <span class="badge badge-{{ 'pagada' if s.status == 'CONFIRMADA' else 'cancelada' if s.status == 'CANCELADA' else 'borrador' }}">
+                            {{ s.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totals-row">
+                    <td colspan="4"><strong>TOTAL</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(sales|sum(attribute='subtotal')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(sales|sum(attribute='tax')) }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(total) }}</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Proximos a Vencer - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Proximos a Vencer (90 dias){% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="summary-cards">
+    <div class="summary-card" style="background:#fff3e0;border-color:#ffe0b2;">
+        <span class="material-icons-outlined summary-icon" style="color:#e65100;">schedule</span>
+        <div class="summary-info">
+            <div class="summary-label">Lotes por Vencer</div>
+            <div class="summary-value">{{ batches|length }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Lote</th>
+                    <th>Fecha Vencimiento</th>
+                    <th>Dias Restantes</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-right">Precio Compra</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in batches %}
+                {% set days_left = (b.expiration_date - today).days if today is defined else 0 %}
+                <tr>
+                    <td><div class="cell-primary">{{ b.product.name }}</div></td>
+                    <td><code class="code-badge">{{ b.batch_number }}</code></td>
+                    <td>{{ b.expiration_date.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <span class="badge badge-{{ 'recibida' if days_left <= 30 else 'confirmada' if days_left <= 60 else 'borrador' }}">
+                            {{ days_left }} dias
+                        </span>
+                    </td>
+                    <td class="text-center"><strong>{{ b.current_quantity }}</strong></td>
+                    <td class="text-right">C$ {{ "%.2f"|format(b.purchase_price) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

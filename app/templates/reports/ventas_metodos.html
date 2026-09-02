@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Metodos de Pago - Reportes - NicaOrder{% endblock %}
+{% block page_title %}Metodos de Pago{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card filter-card">
+    <form method="GET" action="{{ url_for('reports.ventas_metodos') }}" class="filter-form">
+        <div class="filter-group">
+            <label>Desde</label>
+            <input type="date" name="start" value="{{ start }}">
+        </div>
+        <div class="filter-group">
+            <label>Hasta</label>
+            <input type="date" name="end" value="{{ end }}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">search</span>
+            Filtrar
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Metodo de Pago</th>
+                    <th class="text-center">Ventas</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for method, count, total in results %}
+                <tr>
+                    <td><div class="cell-primary">{{ labels.get(method, method) }}</div></td>
+                    <td class="text-center">{{ count }}</td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(total or 0) }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totals-row">
+                    <td><strong>TOTAL</strong></td>
+                    <td class="text-center"><strong>{{ results|sum(attribute='1') }}</strong></td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(results|sum(attribute='2')) }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

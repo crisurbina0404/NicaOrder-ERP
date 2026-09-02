@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Inventario - NicaOrder{% endblock %}
+{% block page_title %}Inventario General{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('inventory.adjust') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">tune</span>
+        Ajuste Manual
+    </a>
+    <a href="{{ url_for('inventory.batches') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">view_list</span>
+        Ver Lotes
+    </a>
+    <a href="{{ url_for('inventory.expiring') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">schedule</span>
+        Proximos a Vencer
+    </a>
+    <a href="{{ url_for('inventory.movements') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">history</span>
+        Movimientos
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('inventory.stock') }}" class="toolbar-form">
+            <div class="search-group">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" name="search" value="{{ search }}" placeholder="Buscar por codigo o nombre..." class="search-input">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">search</span>
+                Buscar
+            </button>
+            {% if search %}
+            <a href="{{ url_for('inventory.stock') }}" class="btn btn-secondary">
+                <span class="material-icons-outlined">clear_all</span>
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if stock_data %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Producto</th>
+                    <th>Unidad</th>
+                    <th>Stock Actual</th>
+                    <th>Stock Minimo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in stock_data %}
+                <tr class="{{ 'row-low-stock' if item.is_low else '' }}">
+                    <td><code class="code-badge">{{ item.code }}</code></td>
+                    <td>
+                        <div class="cell-primary">{{ item.name }}</div>
+                    </td>
+                    <td>{{ item.unit }}</td>
+                    <td class="text-center">
+                        <strong class="{{ 'text-danger' if item.is_low else '' }}">{{ item.current_stock }}</strong>
+                    </td>
+                    <td class="text-center">{{ item.minimum_stock }}</td>
+                    <td>
+                        {% if item.current_stock == 0 %}
+                        <span class="badge badge-empty">Sin Stock</span>
+                        {% elif item.is_low %}
+                        <span class="badge badge-low">Stock Bajo</span>
+                        {% else %}
+                        <span class="badge badge-success">OK</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('inventory.product_batches', product_id=item.id) }}" class="btn btn-icon" title="Ver lotes">
+                                <span class="material-icons-outlined">view_list</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ stock_data|length }} producto(s)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">warehouse</span>
+        <h2>No hay productos en inventario</h2>
+        <p>Reciba una compra para generar lotes automaticamente.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

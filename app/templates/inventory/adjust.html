@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Ajuste de Inventario - NicaOrder{% endblock %}
+{% block page_title %}Ajuste Manual de Inventario{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('inventory.stock') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('inventory.adjust') }}" novalidate>
+        <div class="form-section">
+            <h3 class="section-title">Datos del Ajuste</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="product_id">Producto <span class="required">*</span></label>
+                    <select id="product_id" name="product_id" required>
+                        <option value="">Seleccione un producto</option>
+                        {% for prod in products %}
+                        <option value="{{ prod.id }}" {{ 'selected' if form_data.product_id is defined and form_data.product_id|string == prod.id|string }}>{{ prod.code }} - {{ prod.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="direction">Tipo de Ajuste <span class="required">*</span></label>
+                    <select id="direction" name="direction" required>
+                        <option value="">Seleccione...</option>
+                        <option value="ENTRADA" {{ 'selected' if form_data.direction is defined and form_data.direction == 'ENTRADA' }}>Entrada (agregar stock)</option>
+                        <option value="SALIDA" {{ 'selected' if form_data.direction is defined and form_data.direction == 'SALIDA' }}>Salida (reducir stock)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Cantidad <span class="required">*</span></label>
+                    <input type="number" id="quantity" name="quantity" value="{{ form_data.quantity if form_data.quantity is defined else '' }}" required min="1" placeholder="Cantidad">
+                </div>
+                <div class="form-group">
+                    <label for="batch_number">Numero de Lote</label>
+                    <input type="text" id="batch_number" name="batch_number" value="{{ form_data.batch_number if form_data.batch_number is defined else '' }}" maxlength="50" placeholder="Se genera automaticamente si esta vacio">
+                </div>
+                <div class="form-group">
+                    <label for="expiration_date">Fecha de Vencimiento</label>
+                    <input type="date" id="expiration_date" name="expiration_date" value="{{ form_data.expiration_date if form_data.expiration_date is defined else '' }}">
+                </div>
+                <div class="form-group full-width">
+                    <label for="description">Descripcion</label>
+                    <textarea id="description" name="description" rows="2" maxlength="300" placeholder="Motivo del ajuste">{{ form_data.description if form_data.description is defined else '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('inventory.stock') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Registrar este ajuste de inventario?')">
+                <span class="material-icons-outlined">save</span>
+                Registrar Ajuste
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

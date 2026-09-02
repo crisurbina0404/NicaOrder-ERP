@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Lotes - NicaOrder{% endblock %}
+{% block page_title %}Lotes de Inventario{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('inventory.stock') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('inventory.batches') }}" class="toolbar-form">
+            <div class="search-group">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" name="search" value="{{ search }}" placeholder="Buscar por producto o lote..." class="search-input">
+            </div>
+            <select name="filter" class="filter-select" onchange="this.form.submit()">
+                <option value="">Todos</option>
+                <option value="low" {{ 'selected' if filter_type == 'low' }}>Stock Bajo</option>
+                <option value="expired" {{ 'selected' if filter_type == 'expired' }}>Vencidos</option>
+                <option value="expiring" {{ 'selected' if filter_type == 'expiring' }}>Proximos a Vencer</option>
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">search</span>
+                Buscar
+            </button>
+            {% if search or filter_type %}
+            <a href="{{ url_for('inventory.batches') }}" class="btn btn-secondary">
+                <span class="material-icons-outlined">clear_all</span>
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if batches %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Lote</th>
+                    <th>Producto</th>
+                    <th>Fecha Venc.</th>
+                    <th>Cantidad</th>
+                    <th>Precio Compra</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in batches %}
+                <tr class="{{ 'row-expired' if batch.is_expired else ('row-expiring' if batch.is_expiring_soon else '') }}">
+                    <td><code class="code-badge">{{ batch.batch_number }}</code></td>
+                    <td>
+                        <div class="cell-primary">{{ batch.product.name }}</div>
+                        <div class="cell-secondary">{{ batch.product.code }}</div>
+                    </td>
+                    <td>{{ batch.expiration_date.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-center">
+                        <strong>{{ batch.current_quantity }}</strong>
+                    </td>
+                    <td class="text-right">C$ {{ "%.2f"|format(batch.purchase_price) }}</td>
+                    <td>
+                        {% if batch.is_expired %}
+                        <span class="badge badge-expired">Vencido</span>
+                        {% elif batch.is_expiring_soon %}
+                        <span class="badge badge-expiring">Proximo a Vencer</span>
+                        {% elif batch.current_quantity == 0 %}
+                        <span class="badge badge-empty">Agotado</span>
+                        {% else %}
+                        <span class="badge badge-success">Activo</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ batches|length }} lote(s)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">view_list</span>
+        <h2>No hay lotes</h2>
+        <p>Los lotes se crean automaticamente al recibir una compra.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

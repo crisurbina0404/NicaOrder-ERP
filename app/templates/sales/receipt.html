@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobante Venta #{{ sale.id }}</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f5f5f5; padding: 20px; }
+        .receipt { max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 30px; }
+        .receipt-header { text-align: center; border-bottom: 2px solid #1a73e8; padding-bottom: 15px; margin-bottom: 20px; }
+        .receipt-header h1 { font-size: 24px; color: #1a73e8; margin-bottom: 5px; }
+        .receipt-header p { color: #666; font-size: 13px; }
+        .receipt-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; font-size: 13px; }
+        .receipt-info span { color: #888; }
+        .receipt-info strong { color: #333; }
+        .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+        .receipt-table th { background: #f8f9fa; padding: 8px 10px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        .receipt-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+        .receipt-table .text-right { text-align: right; }
+        .receipt-table .text-center { text-align: center; }
+        .receipt-totals { border-top: 2px solid #e0e0e0; padding-top: 15px; }
+        .receipt-totals .total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+        .receipt-totals .total-final { font-size: 18px; font-weight: 700; color: #1a73e8; border-top: 1px solid #e0e0e0; margin-top: 8px; padding-top: 8px; }
+        .receipt-footer { text-align: center; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #888; }
+        .receipt-footer p { margin-bottom: 4px; }
+        .receipt-status { text-align: center; margin-bottom: 15px; }
+        .receipt-status .badge { display: inline-block; padding: 4px 16px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .badge-borrador { background: #fff3cd; color: #856404; }
+        .badge-confirmada { background: #d4edda; color: #155724; }
+        .badge-cancelada { background: #f8d7da; color: #721c24; }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .receipt { border: none; padding: 0; box-shadow: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="max-width:600px;margin:0 auto 15px;text-align:center;">
+        <button onclick="window.print()" style="padding:10px 24px;background:#1a73e8;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">
+            Imprimir Comprobante
+        </button>
+        <a href="{{ url_for('sales.detail', sale_id=sale.id) }}" style="display:inline-block;margin-left:10px;padding:10px 24px;background:#f1f3f4;color:#333;border:none;border-radius:6px;text-decoration:none;font-size:14px;">Volver</a>
+    </div>
+
+    <div class="receipt">
+        <div class="receipt-header">
+            <h1>NicaOrder</h1>
+            <p>Sistema de Gestion de Productos Medicos</p>
+        </div>
+
+        <div class="receipt-status">
+            <span class="badge badge-{{ sale.status|lower }}">{{ sale.status }}</span>
+        </div>
+
+        <div class="receipt-info">
+            <div><span>Venta #: </span><strong>{{ sale.id }}</strong></div>
+            <div><span>Fecha: </span><strong>{{ sale.sale_date.strftime('%d/%m/%Y') }}</strong></div>
+            <div><span>Cliente: </span><strong>{{ sale.customer.name }}</strong></div>
+            <div><span>Identificacion: </span><strong>{{ sale.customer.identity_number }}</strong></div>
+            <div><span>Forma de Pago: </span><strong>{{ sale.payment_method }}</strong></div>
+            <div><span>Registrado por: </span><strong>{{ sale.user.full_name }}</strong></div>
+        </div>
+
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th class="text-center">Cant.</th>
+                    <th class="text-right">P. Unit.</th>
+                    <th class="text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sale.items %}
+                <tr>
+                    <td>
+                        {{ item.product.name }}
+                        {% if item.batch %}
+                        <br><small style="color:#888;">Lote: {{ item.batch.batch_number }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(item.unit_price) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(item.subtotal) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="receipt-totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>C$ {{ "%.2f"|format(sale.subtotal) }}</span>
+            </div>
+            {% if sale.discount > 0 %}
+            <div class="total-row">
+                <span>Descuento:</span>
+                <span>-C$ {{ "%.2f"|format(sale.discount) }}</span>
+            </div>
+            {% endif %}
+            {% if sale.tax > 0 %}
+            <div class="total-row">
+                <span>Impuesto:</span>
+                <span>+C$ {{ "%.2f"|format(sale.tax) }}</span>
+            </div>
+            {% endif %}
+            <div class="total-row total-final">
+                <span>TOTAL:</span>
+                <span>C$ {{ "%.2f"|format(sale.total) }}</span>
+            </div>
+        </div>
+
+        {% if sale.notes %}
+        <div style="margin-top:15px;font-size:12px;color:#666;">
+            <strong>Notas:</strong> {{ sale.notes }}
+        </div>
+        {% endif %}
+
+        <div class="receipt-footer">
+            <p>Gracias por su compra</p>
+            <p>NicaOrder &copy; {{ sale.sale_date.year }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if is_edit else 'Nueva' }} Compra - NicaOrder{% endblock %}
+{% block page_title %}{{ 'Editar' if is_edit else 'Nueva' }} Compra{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('purchases.list') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('purchases.edit', purchase_id=purchase.id) if is_edit else url_for('purchases.create') }}" id="purchaseForm" novalidate>
+        <div class="form-section">
+            <h3 class="section-title">Informacion General</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="supplier_id">Proveedor <span class="required">*</span></label>
+                    <select id="supplier_id" name="supplier_id" required>
+                        <option value="">Seleccione un proveedor</option>
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier.id }}" {{ 'selected' if (form_data.supplier_id is defined and form_data.supplier_id|string == supplier.id|string) or (is_edit and purchase.supplier_id == supplier.id) }}>{{ supplier.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="purchase_date">Fecha <span class="required">*</span></label>
+                    <input type="date" id="purchase_date" name="purchase_date" value="{{ form_data.purchase_date if form_data.purchase_date is defined else (purchase.purchase_date.strftime('%Y-%m-%d') if is_edit else '') }}" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Productos</h3>
+            <div id="itemsContainer">
+                <div class="items-header">
+                    <span class="item-col-product">Producto</span>
+                    <span class="item-col-qty">Cantidad</span>
+                    <span class="item-col-cost">Costo Unit.</span>
+                    <span class="item-col-subtotal">Subtotal</span>
+                    <span class="item-col-action"></span>
+                </div>
+                <div id="itemsList">
+                    {% if is_edit and purchase.items %}
+                    {% for item in purchase.items %}
+                    <div class="item-row">
+                        <div class="item-col-product">
+                            <select name="item_product_id[]" required>
+                                <option value="">Seleccionar...</option>
+                                {% for prod in products %}
+                                <option value="{{ prod.id }}" {{ 'selected' if item.product_id == prod.id }}>{{ prod.code }} - {{ prod.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="item-col-qty">
+                            <input type="number" name="item_quantity[]" value="{{ item.quantity }}" min="1" required>
+                        </div>
+                        <div class="item-col-cost">
+                            <input type="number" name="item_unit_cost[]" value="{{ '%.2f'|format(item.unit_cost) }}" step="0.01" min="0" required>
+                        </div>
+                        <div class="item-col-subtotal">
+                            <span class="item-subtotal">C$ {{ "%.2f"|format(item.subtotal) }}</span>
+                        </div>
+                        <div class="item-col-action">
+                            <button type="button" class="btn btn-icon btn-remove-item" title="Eliminar">
+                                <span class="material-icons-outlined">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            <button type="button" id="addItemBtn" class="btn btn-secondary btn-add-item">
+                <span class="material-icons-outlined">add</span>
+                Agregar Producto
+            </button>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">Totales</h3>
+            <div class="form-grid totals-grid">
+                <div class="form-group">
+                    <label for="discount">Descuento ($)</label>
+                    <input type="number" id="discount" name="discount" value="{{ form_data.discount if form_data.discount is defined else (purchase.discount if is_edit else 0) }}" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="tax">Impuesto ($)</label>
+                    <input type="number" id="tax" name="tax" value="{{ form_data.tax if form_data.tax is defined else (purchase.tax if is_edit else 0) }}" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notas</label>
+                    <textarea id="notes" name="notes" rows="2" maxlength="500" placeholder="Observaciones de la compra">{{ form_data.notes if form_data.notes is defined else (purchase.notes if is_edit else '') }}</textarea>
+                </div>
+                <div class="totals-summary">
+                    <div class="total-line">
+                        <span>Subtotal:</span>
+                        <span id="displaySubtotal">$0.00</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Descuento:</span>
+                        <span id="displayDiscount">-$0.00</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Impuesto:</span>
+                        <span id="displayTax">+$0.00</span>
+                    </div>
+                    <div class="total-line total-final">
+                        <span>Total:</span>
+                        <span id="displayTotal">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('purchases.list') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">{{ 'save' if is_edit else 'add' }}</span>
+                {{ 'Guardar Cambios' if is_edit else 'Registrar Compra' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var productsData = [
+    {% for prod in products %}
+    {id: {{ prod.id }}, code: "{{ prod.code }}", name: "{{ prod.name }}", unit: "{{ prod.unit }}", price: {{ prod.purchase_price }}},
+    {% endfor %}
+];
+
+document.addEventListener("DOMContentLoaded", function() {
+    var itemsList = document.getElementById("itemsList");
+    var addItemBtn = document.getElementById("addItemBtn");
+    var discountInput = document.getElementById("discount");
+    var taxInput = document.getElementById("tax");
+
+    function createItemRow() {
+        var row = document.createElement("div");
+        row.className = "item-row";
+        var options = '<option value="">Seleccionar...</option>';
+        productsData.forEach(function(p) {
+            options += '<option value="' + p.id + '" data-price="' + p.price + '">' + p.code + ' - ' + p.name + '</option>';
+        });
+        row.innerHTML =
+            '<div class="item-col-product"><select name="item_product_id[]" required>' + options + '</select></div>' +
+            '<div class="item-col-qty"><input type="number" name="item_quantity[]" value="1" min="1" required></div>' +
+            '<div class="item-col-cost"><input type="number" name="item_unit_cost[]" value="0.00" step="0.01" min="0" required></div>' +
+            '<div class="item-col-subtotal"><span class="item-subtotal">$0.00</span></div>' +
+            '<div class="item-col-action"><button type="button" class="btn btn-icon btn-remove-item" title="Eliminar"><span class="material-icons-outlined">delete</span></button></div>';
+
+        var select = row.querySelector("select");
+        select.addEventListener("change", function() {
+            var opt = this.options[this.selectedIndex];
+            var price = opt.getAttribute("data-price");
+            if (price) {
+                row.querySelector('input[name="item_unit_cost[]"]').value = parseFloat(price).toFixed(2);
+            }
+            recalculateRow(row);
+        });
+
+        row.querySelector('input[name="item_quantity[]"]').addEventListener("input", function() { recalculateRow(row); });
+        row.querySelector('input[name="item_unit_cost[]"]').addEventListener("input", function() { recalculateRow(row); });
+        row.querySelector(".btn-remove-item").addEventListener("click", function() { row.remove(); recalculateAll(); });
+
+        return row;
+    }
+
+    function recalculateRow(row) {
+        var qty = parseInt(row.querySelector('input[name="item_quantity[]"]').value) || 0;
+        var cost = parseFloat(row.querySelector('input[name="item_unit_cost[]"]').value) || 0;
+        var sub = qty * cost;
+        row.querySelector(".item-subtotal").textContent = "$" + sub.toFixed(2);
+        recalculateAll();
+    }
+
+    function recalculateAll() {
+        var subtotal = 0;
+        itemsList.querySelectorAll(".item-row").forEach(function(row) {
+            var qty = parseInt(row.querySelector('input[name="item_quantity[]"]').value) || 0;
+            var cost = parseFloat(row.querySelector('input[name="item_unit_cost[]"]').value) || 0;
+            subtotal += qty * cost;
+        });
+        var discount = parseFloat(discountInput.value) || 0;
+        var tax = parseFloat(taxInput.value) || 0;
+        var total = subtotal - discount + tax;
+
+        document.getElementById("displaySubtotal").textContent = "$" + subtotal.toFixed(2);
+        document.getElementById("displayDiscount").textContent = "-$" + discount.toFixed(2);
+        document.getElementById("displayTax").textContent = "+$" + tax.toFixed(2);
+        document.getElementById("displayTotal").textContent = "$" + total.toFixed(2);
+    }
+
+    addItemBtn.addEventListener("click", function() {
+        itemsList.appendChild(createItemRow());
+    });
+
+    discountInput.addEventListener("input", recalculateAll);
+    taxInput.addEventListener("input", recalculateAll);
+
+    var existingRows = itemsList.querySelectorAll(".item-row");
+    existingRows.forEach(function(row) {
+        var select = row.querySelector("select");
+        if (select) {
+            select.addEventListener("change", function() {
+                var opt = this.options[this.selectedIndex];
+                var price = opt.getAttribute("data-price");
+                if (price) {
+                    row.querySelector('input[name="item_unit_cost[]"]').value = parseFloat(price).toFixed(2);
+                }
+                recalculateRow(row);
+            });
+        }
+        row.querySelector('input[name="item_quantity[]"]').addEventListener("input", function() { recalculateRow(row); });
+        row.querySelector('input[name="item_unit_cost[]"]').addEventListener("input", function() { recalculateRow(row); });
+        row.querySelector(".btn-remove-item").addEventListener("click", function() { row.remove(); recalculateAll(); });
+    });
+
+    recalculateAll();
+});
+</script>
+{% endblock %}

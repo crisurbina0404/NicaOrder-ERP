@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Proveedores - NicaOrder{% endblock %}
+{% block page_title %}Proveedores{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('suppliers.create') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">add</span>
+        Nuevo Proveedor
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('suppliers.list') }}" class="toolbar-form">
+            <div class="search-group">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" name="search" value="{{ search }}" placeholder="Buscar por nombre, NIT o contacto..." class="search-input">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">search</span>
+                Buscar
+            </button>
+            {% if search %}
+            <a href="{{ url_for('suppliers.list') }}" class="btn btn-secondary">
+                <span class="material-icons-outlined">clear_all</span>
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if suppliers %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>NIT/RUC</th>
+                    <th>Contacto</th>
+                    <th>Telefono</th>
+                    <th>Email</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for supplier in suppliers %}
+                <tr class="{{ '' if supplier.is_active else 'row-inactive' }}">
+                    <td>
+                        <div class="cell-primary">{{ supplier.name }}</div>
+                        {% if supplier.address %}
+                        <div class="cell-secondary">{{ supplier.address }}</div>
+                        {% endif %}
+                    </td>
+                    <td><code class="code-badge">{{ supplier.tax_id }}</code></td>
+                    <td>{{ supplier.contact_person or '-' }}</td>
+                    <td>{{ supplier.phone or '-' }}</td>
+                    <td>{{ supplier.email or '-' }}</td>
+                    <td>
+                        <span class="badge {{ 'badge-success' if supplier.is_active else 'badge-inactive' }}">
+                            {{ 'Activo' if supplier.is_active else 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('suppliers.edit', supplier_id=supplier.id) }}" class="btn btn-icon" title="Editar">
+                                <span class="material-icons-outlined">edit</span>
+                            </a>
+                            <form method="POST" action="{{ url_for('suppliers.toggle', supplier_id=supplier.id) }}" class="inline-form">
+                                <button type="submit" class="btn btn-icon" title="{{ 'Desactivar' if supplier.is_active else 'Activar' }}" onclick="return confirm('{{ 'Desactivar' if supplier.is_active else 'Activar' }} este proveedor?')">
+                                    <span class="material-icons-outlined">{{ 'toggle_on' if supplier.is_active else 'toggle_off' }}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ suppliers|length }} proveedor(es)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">business</span>
+        <h2>No hay proveedores</h2>
+        <p>Registre su primer proveedor haciendo clic en el boton superior.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

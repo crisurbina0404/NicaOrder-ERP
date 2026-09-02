@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if is_edit else 'Nuevo' }} Cliente - NicaOrder{% endblock %}
+{% block page_title %}{{ 'Editar' if is_edit else 'Nuevo' }} Cliente{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('customers.list') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('customers.edit', customer_id=customer.id) if is_edit else url_for('customers.create') }}" novalidate>
+        <div class="form-section">
+            <h3 class="section-title">Informacion del Cliente</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name">Nombre <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" value="{{ form_data.name if form_data.name is defined else (customer.name if is_edit else '') }}" required maxlength="150" placeholder="Nombre o razon social">
+                </div>
+                <div class="form-group">
+                    <label for="identity_number">Identificacion <span class="required">*</span></label>
+                    <input type="text" id="identity_number" name="identity_number" value="{{ form_data.identity_number if form_data.identity_number is defined else (customer.identity_number if is_edit else '') }}" required maxlength="50" placeholder="Cedula o RUC">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Telefono</label>
+                    <input type="text" id="phone" name="phone" value="{{ form_data.phone if form_data.phone is defined else (customer.phone if is_edit else '') }}" maxlength="30" placeholder="Ej: 2233-1234">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="{{ form_data.email if form_data.email is defined else (customer.email if is_edit else '') }}" maxlength="120" placeholder="correo@cliente.com">
+                </div>
+                <div class="form-group full-width">
+                    <label for="address">Direccion</label>
+                    <input type="text" id="address" name="address" value="{{ form_data.address if form_data.address is defined else (customer.address if is_edit else '') }}" maxlength="300" placeholder="Direccion completa">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('customers.list') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">{{ 'save' if is_edit else 'add' }}</span>
+                {{ 'Guardar Cambios' if is_edit else 'Registrar Cliente' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

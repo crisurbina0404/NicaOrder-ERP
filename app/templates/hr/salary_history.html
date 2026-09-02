@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Historial Salarial - {{ employee.full_name }} - NicaOrder{% endblock %}
+{% block page_title %}Historial Salarial - {{ employee.full_name }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('hr.detail', employee_id=employee.id) }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver al empleado
+    </a>
+</div>
+
+<div class="card">
+    <div class="product-info-header" style="margin-bottom:20px;">
+        <div>
+            <h3 class="section-title">{{ employee.full_name }}</h3>
+            <p class="text-secondary-sm">{{ employee.employee_code }} - {{ employee.department.name }} / {{ employee.position.name }}</p>
+        </div>
+        <div class="stock-summary">
+            <span>Salario actual:</span>
+            <strong>C$ {{ "%.2f"|format(employee.current_salary) }}</strong>
+        </div>
+    </div>
+
+    {% if salary_history %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Salario</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Motivo</th>
+                    <th>Registrado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in salary_history %}
+                <tr>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(record.salary) }}</strong></td>
+                    <td>{{ record.start_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ record.end_date.strftime('%d/%m/%Y') if record.end_date else '<span class="badge badge-success">Actual</span>'|safe }}</td>
+                    <td>{{ record.reason or '-' }}</td>
+                    <td>{{ record.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ salary_history|length }} registro(s)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">history</span>
+        <h2>Sin historial</h2>
+        <p>No hay registros de salario para este empleado.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Periodo - NicaOrder{% endblock %}
+{% block page_title %}Crear Periodo de Nomina{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('payroll.index') }}" class="btn btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span>
+        Volver
+    </a>
+</div>
+
+<div class="card form-card">
+    <form method="POST" action="{{ url_for('payroll.create_period') }}">
+        <div class="form-section">
+            <h3 class="section-title">Datos del Periodo</h3>
+            <p class="form-description">
+                Seleccione el mes y ano para el periodo de nomina.
+            </p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="month">Mes <span class="required">*</span></label>
+                    <select id="month" name="month" required>
+                        <option value="">Seleccione mes</option>
+                        {% for m in range(1, 13) %}
+                        <option value="{{ m }}">{{ month_names[m] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="year">Ano <span class="required">*</span></label>
+                    <input type="number" id="year" name="year" value="2026" min="2020" max="2030" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('payroll.index') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">add</span>
+                Crear Periodo
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

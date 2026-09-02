@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesion - NicaOrder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-logo">Nica<span class="logo-accent">Order</span></h1>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">
+                    <span class="material-icons-outlined flash-icon">
+                        {{ 'check_circle' if category == 'success' else 'error' if category == 'error' else 'info' }}
+                    </span>
+                    <span class="flash-message">{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <div class="input-wrapper">
+                        <span class="material-icons-outlined input-icon">person</span>
+                        <input type="text" id="username" name="username" required autocomplete="username" autofocus>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contrasena</label>
+                    <div class="input-wrapper">
+                        <span class="material-icons-outlined input-icon">lock</span>
+                        <input type="password" id="password" name="password" required autocomplete="current-password">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Ingresar</button>
+                <p class="auth-alt-text">
+                    No tiene cuenta? <a href="{{ url_for('auth.register') }}" class="link-primary">Registrarse</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

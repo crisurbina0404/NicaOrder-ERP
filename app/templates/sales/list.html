@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Ventas - NicaOrder{% endblock %}
+{% block page_title %}Ventas{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a href="{{ url_for('sales.create') }}" class="btn btn-primary">
+        <span class="material-icons-outlined">add</span>
+        Nueva Venta
+    </a>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <form method="GET" action="{{ url_for('sales.list') }}" class="toolbar-form">
+            <div class="search-group">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" name="search" value="{{ search }}" placeholder="Buscar por cliente o numero..." class="search-input">
+            </div>
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                {% for s in valid_statuses %}
+                <option value="{{ s }}" {{ 'selected' if selected_status == s }}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-outlined">search</span>
+                Buscar
+            </button>
+            {% if search or selected_status %}
+            <a href="{{ url_for('sales.list') }}" class="btn btn-secondary">
+                <span class="material-icons-outlined">clear_all</span>
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if sales %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Pago</th>
+                    <th>Subtotal</th>
+                    <th>Descuento</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td><code class="code-badge">{{ sale.id }}</code></td>
+                    <td>
+                        <div class="cell-primary">{{ sale.customer.name }}</div>
+                        <div class="cell-secondary">{{ sale.customer.identity_number }}</div>
+                    </td>
+                    <td>{{ sale.sale_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ sale.payment_method }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(sale.subtotal) }}</td>
+                    <td class="text-right">C$ {{ "%.2f"|format(sale.discount) }}</td>
+                    <td class="text-right"><strong>C$ {{ "%.2f"|format(sale.total) }}</strong></td>
+                    <td>
+                        <span class="badge badge-{{ sale.status|lower }}">
+                            {{ sale.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('sales.detail', sale_id=sale.id) }}" class="btn btn-icon" title="Ver detalle">
+                                <span class="material-icons-outlined">visibility</span>
+                            </a>
+                            {% if sale.status == 'BORRADOR' %}
+                            <a href="{{ url_for('sales.edit', sale_id=sale.id) }}" class="btn btn-icon" title="Editar">
+                                <span class="material-icons-outlined">edit</span>
+                            </a>
+                            {% endif %}
+                            {% if sale.status == 'CONFIRMADA' %}
+                            <a href="{{ url_for('sales.receipt', sale_id=sale.id) }}" class="btn btn-icon" title="Comprobante">
+                                <span class="material-icons-outlined">receipt</span>
+                            </a>
+                            <a href="{{ url_for('sales.return_sale', sale_id=sale.id) }}" class="btn btn-icon" title="Devoluciones">
+                                <span class="material-icons-outlined">replay</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <span class="table-info">Mostrando {{ sales|length }} venta(s)</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons-outlined empty-icon">point_of_sale</span>
+        <h2>No hay ventas</h2>
+        <p>Registre su primera venta haciendo clic en el boton superior.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
