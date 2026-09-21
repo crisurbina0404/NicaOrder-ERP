@@ -1,6 +1,48 @@
+import re
 from functools import wraps
 from flask import session, redirect, url_for, request, g
 from .models import User
+
+# ===== VALIDADORES DE DATOS DE USUARIO =====
+
+PHONE_RE = re.compile(r"^[578]\d{7}$")
+
+
+def normalize_phone(raw):
+    """Elimina espacios, guiones y parentesis de un telefono."""
+    return re.sub(r"[\s\-()]", "", (raw or "")).strip()
+
+
+def validate_phone(phone):
+    """Telefono opcional: exactamente 8 digitos, inicia con 5, 7 u 8. None si es valido."""
+    if not phone:
+        return None
+    if not PHONE_RE.match(phone):
+        return "El telefono debe tener 8 digitos e iniciar con 5, 7 u 8."
+    return None
+
+
+def validate_full_name(full_name):
+    if len(full_name) > 50:
+        return "El nombre completo no debe exceder 50 caracteres."
+    return None
+
+
+def validate_username(username):
+    if len(username) > 25:
+        return "El nombre de usuario no debe exceder 25 caracteres."
+    return None
+
+
+def validate_email(email):
+    if "@" not in email:
+        return "Ingrese un correo electronico valido."
+    local_part = email.split("@")[0]
+    if len(local_part) > 64:
+        return "La parte del correo antes del @ no debe exceder 64 caracteres."
+    if len(email) > 120:
+        return "El correo electronico no debe exceder 120 caracteres."
+    return None
 
 
 def load_user():

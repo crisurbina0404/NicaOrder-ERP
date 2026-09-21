@@ -15,25 +15,26 @@
         <div class="form-row">
             <div class="form-group">
                 <label for="username">Nombre de usuario *</label>
-                <input type="text" id="username" name="username" required
+                <input type="text" id="username" name="username" required maxlength="25" title="Maximo 25 caracteres"
                        value="{{ form_data.get('username', '') if form_data else (user.username if user else '') }}">
             </div>
             <div class="form-group">
                 <label for="email">Correo electronico *</label>
-                <input type="email" id="email" name="email" required
+                <input type="email" id="email" name="email" required maxlength="120" title="Maximo 64 caracteres antes del @"
                        value="{{ form_data.get('email', '') if form_data else (user.email if user else '') }}">
             </div>
         </div>
 
         <div class="form-group">
             <label for="full_name">Nombre completo *</label>
-            <input type="text" id="full_name" name="full_name" required
+            <input type="text" id="full_name" name="full_name" required maxlength="50" title="Maximo 50 caracteres"
                    value="{{ form_data.get('full_name', '') if form_data else (user.full_name if user else '') }}">
         </div>
 
         <div class="form-group">
             <label for="phone">Telefono</label>
-            <input type="text" id="phone" name="phone"
+            <input type="tel" id="phone" name="phone" maxlength="8" inputmode="numeric" pattern="[578][0-9]{7}"
+                   placeholder="85562548" title="Exactamente 8 digitos e inicia con 5, 7 u 8"
                    value="{{ form_data.get('phone', '') if form_data else (user.phone if user else '') }}">
         </div>
 

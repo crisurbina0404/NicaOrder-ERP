@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from ..auth import login_required, role_required
 from ..models import User, Role, Permission, AuditLog
 from ..extensions import db
+from ..auth import normalize_phone, validate_full_name, validate_username, validate_email, validate_phone
 from sqlalchemy import or_
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -84,7 +85,7 @@ def user_create():
             username=username,
             full_name=request.form["full_name"].strip(),
             email=request.form["email"].strip(),
-            phone=request.form.get("phone", "").strip(),
+            phone=normalize_phone(request.form.get("phone", "")),
             role_id=int(request.form["role_id"]),
             is_active=True,
             account_status="ACTIVA",
@@ -147,7 +148,7 @@ def user_edit(user_id):
         user.username = request.form["username"].strip().lower()
         user.full_name = request.form["full_name"].strip()
         user.email = request.form["email"].strip()
-        user.phone = request.form.get("phone", "").strip()
+        user.phone = normalize_phone(request.form.get("phone", ""))
         user.role_id = int(request.form["role_id"])
 
         new_password = request.form.get("password", "").strip()
@@ -520,7 +521,12 @@ def _validate_user_form(form, exclude_username=None, exclude_email=None):
     username = form.get("username", "").strip()
     full_name = form.get("full_name", "").strip()
     email = form.get("email", "").strip()
+    phone = normalize_phone(form.get("phone", ""))
     role_id = form.get("role_id", "").strip()
+
+    for error in (validate_full_name(full_name), validate_username(username), validate_email(email), validate_phone(phone)):
+        if error:
+            errors.append(error)
 
     if not username:
         errors.append("El nombre de usuario es obligatorio.")

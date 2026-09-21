@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from werkzeug.security import check_password_hash
 from ..models import User, Role, AuditLog
 from ..extensions import db
+from ..auth import normalize_phone, validate_full_name, validate_username, validate_email, validate_phone
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -99,12 +100,16 @@ def register():
         full_name = request.form.get("full_name", "").strip()
         username = request.form.get("username", "").strip().lower()
         email = request.form.get("email", "").strip()
-        phone = request.form.get("phone", "").strip()
+        phone = normalize_phone(request.form.get("phone", ""))
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
         requested_role_name = request.form.get("requested_role", "").strip()
 
         errors = []
+
+        for error in (validate_full_name(full_name), validate_username(username), validate_email(email), validate_phone(phone)):
+            if error:
+                errors.append(error)
 
         if not full_name:
             errors.append("El nombre completo es obligatorio.")

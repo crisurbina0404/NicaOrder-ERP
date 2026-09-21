@@ -7,12 +7,12 @@ class Role(db.Model):
     __tablename__ = "roles"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    description = db.Column(db.String(200), nullable=True)
+    name = db.Column("nombre", db.String(50), unique=True, nullable=False)
+    description = db.Column("descripcion", db.String(200), nullable=True)
 
     users = db.relationship("User", back_populates="role", foreign_keys="[User.role_id]", lazy=True)
     permissions = db.relationship(
-        "Permission", secondary="role_permissions", back_populates="roles", lazy=True
+        "Permission", secondary="roles_permisos", back_populates="roles", lazy=True
     )
 
     def has_permission(self, perm_name):
@@ -23,15 +23,15 @@ class Role(db.Model):
 
 
 class Permission(db.Model):
-    __tablename__ = "permissions"
+    __tablename__ = "permisos"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    description = db.Column(db.String(200), nullable=True)
-    module = db.Column(db.String(50), nullable=True)
+    name = db.Column("nombre", db.String(100), unique=True, nullable=False)
+    description = db.Column("descripcion", db.String(200), nullable=True)
+    module = db.Column("modulo", db.String(50), nullable=True)
 
     roles = db.relationship(
-        "Role", secondary="role_permissions", back_populates="permissions", lazy=True
+        "Role", secondary="roles_permisos", back_populates="permissions", lazy=True
     )
 
     def __repr__(self):
@@ -39,35 +39,35 @@ class Permission(db.Model):
 
 
 class RolePermission(db.Model):
-    __tablename__ = "role_permissions"
+    __tablename__ = "roles_permisos"
 
-    role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), primary_key=True)
+    role_id = db.Column("rol_id", db.Integer, db.ForeignKey("roles.id"), primary_key=True)
     permission_id = db.Column(
-        db.Integer, db.ForeignKey("permissions.id"), primary_key=True
+        "permiso_id", db.Integer, db.ForeignKey("permisos.id"), primary_key=True
     )
 
 
 class User(db.Model):
-    __tablename__ = "users"
+    __tablename__ = "usuarios"
 
     VALID_STATUSES = ("PENDIENTE", "ACTIVA", "RECHAZADA", "BLOQUEADA", "INACTIVA")
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-    full_name = db.Column(db.String(150), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(30), nullable=True)
-    role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=False)
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
-    account_status = db.Column(db.String(20), default="ACTIVA", nullable=False)
-    requested_role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=True)
-    approved_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-    approved_at = db.Column(db.DateTime, nullable=True)
-    rejection_reason = db.Column(db.String(500), nullable=True)
-    last_login = db.Column(db.DateTime, nullable=True)
+    username = db.Column("usuario", db.String(50), unique=True, nullable=False)
+    password_hash = db.Column("contrasena_hash", db.String(256), nullable=False)
+    full_name = db.Column("nombre_completo", db.String(150), nullable=False)
+    email = db.Column("correo", db.String(120), unique=True, nullable=False)
+    phone = db.Column("telefono", db.String(30), nullable=True)
+    role_id = db.Column("rol_id", db.Integer, db.ForeignKey("roles.id"), nullable=False)
+    is_active = db.Column("activo", db.Boolean, default=True, nullable=False)
+    account_status = db.Column("estado_cuenta", db.String(20), default="ACTIVA", nullable=False)
+    requested_role_id = db.Column("rol_solicitado_id", db.Integer, db.ForeignKey("roles.id"), nullable=True)
+    approved_by = db.Column("aprobado_por", db.Integer, db.ForeignKey("usuarios.id"), nullable=True)
+    approved_at = db.Column("fecha_aprobacion", db.DateTime, nullable=True)
+    rejection_reason = db.Column("motivo_rechazo", db.String(500), nullable=True)
+    last_login = db.Column("ultimo_acceso", db.DateTime, nullable=True)
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+        "fecha_creacion", db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
 
     role = db.relationship("Role", foreign_keys=[role_id], back_populates="users")
@@ -96,45 +96,45 @@ class User(db.Model):
 
 
 class Department(db.Model):
-    __tablename__ = "departments"
+    __tablename__ = "departamentos"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    description = db.Column(db.String(200), nullable=True)
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    name = db.Column("nombre", db.String(100), unique=True, nullable=False)
+    description = db.Column("descripcion", db.String(200), nullable=True)
+    is_active = db.Column("activo", db.Boolean, default=True, nullable=False)
 
     def __repr__(self):
         return f"<Department {self.name}>"
 
 
 class Position(db.Model):
-    __tablename__ = "positions"
+    __tablename__ = "cargos"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    description = db.Column(db.String(200), nullable=True)
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    name = db.Column("nombre", db.String(100), unique=True, nullable=False)
+    description = db.Column("descripcion", db.String(200), nullable=True)
+    is_active = db.Column("activo", db.Boolean, default=True, nullable=False)
 
     def __repr__(self):
         return f"<Position {self.name}>"
 
 
 class AuditLog(db.Model):
-    __tablename__ = "audit_logs"
+    __tablename__ = "auditoria"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    target_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-    action = db.Column(db.String(50), nullable=False)
-    module = db.Column(db.String(50), nullable=False)
-    description = db.Column(db.String(500), nullable=True)
-    previous_role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=True)
-    new_role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=True)
-    previous_status = db.Column(db.String(20), nullable=True)
-    new_status = db.Column(db.String(20), nullable=True)
-    reason = db.Column(db.String(500), nullable=True)
+    user_id = db.Column("usuario_id", db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+    target_user_id = db.Column("usuario_objetivo_id", db.Integer, db.ForeignKey("usuarios.id"), nullable=True)
+    action = db.Column("accion", db.String(50), nullable=False)
+    module = db.Column("modulo", db.String(50), nullable=False)
+    description = db.Column("descripcion", db.String(500), nullable=True)
+    previous_role_id = db.Column("rol_anterior_id", db.Integer, db.ForeignKey("roles.id"), nullable=True)
+    new_role_id = db.Column("rol_nuevo_id", db.Integer, db.ForeignKey("roles.id"), nullable=True)
+    previous_status = db.Column("estado_anterior", db.String(20), nullable=True)
+    new_status = db.Column("estado_nuevo", db.String(20), nullable=True)
+    reason = db.Column("motivo", db.String(500), nullable=True)
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+        "fecha_creacion", db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
 
     target_user = db.relationship("User", foreign_keys=[target_user_id])

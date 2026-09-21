@@ -325,34 +325,6 @@ def product_batches(product_id):
     )
 
 
-def create_batches_from_purchase(purchase):
-    for item in purchase.items:
-        batch_number = f"CMP-{purchase.id}-{item.product_id}"
-        batch = ProductBatch(
-            product_id=item.product_id,
-            purchase_id=purchase.id,
-            batch_number=batch_number,
-            expiration_date=datetime.now().date() + timedelta(days=365),
-            quantity=item.quantity,
-            purchase_price=item.unit_cost,
-            is_active=True,
-        )
-        db.session.add(batch)
-        db.session.flush()
-
-        movement = InventoryMovement(
-            product_id=item.product_id,
-            batch_id=batch.id,
-            movement_type="ENTRADA",
-            quantity=item.quantity,
-            reference_type="COMPRA",
-            reference_id=purchase.id,
-            description=f"Entrada por compra #{purchase.id}",
-            user_id=purchase.user_id,
-        )
-        db.session.add(movement)
-
-
 def fefo_dispatch(product_id, quantity_needed, user_id, reference_type=None, reference_id=None, description=None):
     batches = (
         ProductBatch.query.filter_by(product_id=product_id, is_active=True)

@@ -88,10 +88,10 @@ def _seed_test_data():
 
     existing_products = {p.code for p in Product.query.filter_by(is_active=True).all()}
     cat = _db.session.execute(
-        _db.text("SELECT id FROM categories LIMIT 1")
+        _db.text("SELECT id FROM categorias LIMIT 1")
     ).fetchone()
     brand = _db.session.execute(
-        _db.text("SELECT id FROM brands LIMIT 1")
+        _db.text("SELECT id FROM marcas LIMIT 1")
     ).fetchone()
 
     if cat and brand:
@@ -109,7 +109,7 @@ def _seed_test_data():
             _db.session.flush()
 
         existing_batches = _db.session.execute(
-            _db.text("SELECT COUNT(*) FROM product_batches")
+            _db.text("SELECT COUNT(*) FROM lotes_producto")
         ).fetchone()
 
         if test_product and existing_batches and existing_batches[0] == 0:
@@ -586,8 +586,8 @@ class TestEmployeeAndSalary:
     def test_create_employee(self, client, app):
         login(client)
         with app.app_context():
-            dept = _db.session.execute(_db.text("SELECT id FROM departments LIMIT 1")).fetchone()
-            pos = _db.session.execute(_db.text("SELECT id FROM positions LIMIT 1")).fetchone()
+            dept = _db.session.execute(_db.text("SELECT id FROM departamentos LIMIT 1")).fetchone()
+            pos = _db.session.execute(_db.text("SELECT id FROM cargos LIMIT 1")).fetchone()
             dept_id = dept[0] if dept else 1
             pos_id = pos[0] if pos else 1
 
@@ -960,7 +960,7 @@ class TestRegistration:
     def test_register_password_mismatch(self, client):
         resp = client.post("/auth/register", data={
             "full_name": "Mismatch User",
-            "username": "mismatch_user",
+            "username": "mismatch1",
             "email": "mismatch@test.com",
             "password": "test1234",
             "confirm_password": "different123",
@@ -971,7 +971,7 @@ class TestRegistration:
     def test_register_short_password(self, client):
         resp = client.post("/auth/register", data={
             "full_name": "Short PW",
-            "username": "shortpw_user",
+            "username": "shortpw1",
             "email": "shortpw@test.com",
             "password": "123",
             "confirm_password": "123",
