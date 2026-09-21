@@ -1,3 +1,5 @@
+<img width="1919" height="905" alt="image" src="https://github.com/user-attachments/assets/25de4a58-3a73-48e2-bede-e8509c996c3e" />
+
 # NicaOrder
 
 Sistema de gestion empresarial para una tienda de productos medicos en Nicaragua.
