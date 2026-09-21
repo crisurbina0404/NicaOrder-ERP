@@ -14,6 +14,10 @@ def init_db():
 
 def _seed_initial_data():
     if Role.query.first() is not None:
+        # Base de datos existente: solo se completan empleados que falten
+        # (ej. BDs creadas con una version anterior del seed)
+        _seed_employees()
+        db.session.commit()
         return
 
     admin_role = Role(name="Administrador", description="Acceso total al sistema")
@@ -345,7 +349,16 @@ def _seed_departments_positions():
 
 
 def _seed_employees():
-    if Employee.query.first() is not None:
+    # Seed idempotente: si ya estan todos, no hay nada que hacer;
+    # si falta alguno (ej. BD creada con una version anterior), se completan.
+    existing_codes = {e.employee_code for e in Employee.query.all()}
+
+    if "EMP-024" in existing_codes:
+        return
+
+    depts = {d.name: d.id for d in Department.query.all()}
+    positions = {p.name: p.id for p in Position.query.all()}
+    if not depts or not positions:
         return
 
     from datetime import date
@@ -364,6 +377,9 @@ def _seed_employees():
     ]
 
     for code, first, last, identity, birth, phone, email, address, dept_name, pos_name, hire, contract, salary in employees_data:
+        if code in existing_codes:
+            continue
+
         emp = Employee(
             employee_code=code,
             first_name=first,
@@ -379,6 +395,61 @@ def _seed_employees():
             contract_type=contract,
             base_salary=salary,
             status="ACTIVO",
+        )
+        db.session.add(emp)
+        db.session.flush()
+
+        sh = SalaryHistory(
+            employee_id=emp.id,
+            salary=salary,
+            start_date=hire,
+            end_date=None,
+            reason="Salario inicial",
+        )
+        db.session.add(sh)
+
+    # ===== Planilla ampliada del personal operativo y administrativo =====
+    # (codigo, nombre, apellido, cedula, nacimiento, telefono, email, direccion,
+    #  departamento, cargo, ingreso, contrato, salario, estado)
+    staff_data = [
+        ("EMP-008", "Jose Antonio", "Rivas Urbina", "001-910224-0147K", date(1991, 2, 24), "88372641", "jose.rivas@nicaorder.com", "Managua, Col. Centro America", "Ventas", "Vendedor", date(2022, 8, 15), "INDEFINIDO", 12640.00, "ACTIVO"),
+        ("EMP-009", "Mayra Alejandra", "Zeledon", "001-930817-0233A", date(1993, 8, 17), "77150328", "mayra.zeledon@nicaorder.com", "Managua, Barrio La Primavera", "Ventas", "Cajero", date(2023, 3, 2), "INDEFINIDO", 9820.00, "ACTIVO"),
+        ("EMP-010", "Douglas Ramon", "Baltodano", "043-860512-0098C", date(1986, 5, 12), "84521679", "douglas.baltodano@nicaorder.com", "Leon, Barrio Subtiava", "Bodega", "Bodeguero", date(2021, 11, 8), "INDEFINIDO", 10150.00, "ACTIVO"),
+        ("EMP-011", "Ivania Susana", "Quiroz", "001-970310-0521B", date(1997, 3, 10), "78634912", "ivania.quiroz@nicaorder.com", "Managua, Reparto El Carmen", "Ventas", "Vendedor", date(2024, 5, 20), "INDEFINIDO", 11875.00, "ACTIVO"),
+        ("EMP-012", "Byron Antonio", "Mayorga", "025-841129-0176H", date(1984, 11, 29), "89208453", "byron.mayorga@nicaorder.com", "Masaya, Barrio Monimbo", "Bodega", "Bodeguero", date(2020, 7, 6), "INDEFINIDO", 11230.00, "ACTIVO"),
+        ("EMP-013", "Kenia Vanessa", "Solorzano", "001-990607-0312D", date(1999, 6, 7), "56871492", "kenia.solorzano@nicaorder.com", "Managua, Col. Nicarao", "Administracion", "Auxiliar Administrativo", date(2024, 9, 16), "PLAZO_FIJO", 9560.00, "ACTIVO"),
+        ("EMP-014", "Marvin Antonio", "Tellez", "001-870918-0104J", date(1987, 9, 18), "87346015", "marvin.tellez@nicaorder.com", "Managua, Col. Los Robles", "Contabilidad", "Contador", date(2019, 10, 1), "INDEFINIDO", 28450.00, "ACTIVO"),
+        ("EMP-015", "Yesenia del Carmen", "Obando", "028-920123-0287G", date(1992, 1, 23), "77493826", "yesenia.obando@nicaorder.com", "Jinotepe, Barrio El Calvario", "Ventas", "Cajero", date(2023, 10, 9), "INDEFINIDO", 10375.00, "ACTIVO"),
+        ("EMP-016", "Oscar Ernesto", "Cuadra Gadea", "001-890415-0075A", date(1989, 4, 15), "81670483", "oscar.cuadra@nicaorder.com", "Managua, Villa Libertad", "Ventas", "Vendedor", date(2022, 2, 14), "INDEFINIDO", 13420.00, "ACTIVO"),
+        ("EMP-017", "Ana Cristina", "Gutierrez", "055-950929-0168K", date(1995, 9, 29), "85291670", "ana.gutierrez@nicaorder.com", "Granada, Calle La Calzada", "Recursos Humanos", "Analista de RRHH", date(2021, 5, 17), "INDEFINIDO", 18940.00, "ACTIVO"),
+        ("EMP-018", "Danilo Antonio", "Rugama", "040-830711-0209C", date(1983, 7, 11), "56742831", "danilo.rugama@nicaorder.com", "Ciudad Sandino, Reparto La Luz", "Bodega", "Bodeguero", date(2020, 1, 20), "INDEFINIDO", 10780.00, "ACTIVO"),
+        ("EMP-019", "Gabriela Esther", "Talavera", "001-000217-0433B", date(2000, 2, 17), "88537204", "gabriela.talavera@nicaorder.com", "Managua, Barrio Altagracia", "Administracion", "Auxiliar Administrativo", date(2025, 2, 3), "PLAZO_FIJO", 8940.00, "ACTIVO"),
+        ("EMP-020", "Freddy Alberto", "Miranda", "038-881006-0154D", date(1988, 10, 6), "77920154", "freddy.miranda@nicaorder.com", "Matagalpa, Barrio Laborio", "Ventas", "Vendedor", date(2023, 6, 12), "INDEFINIDO", 10930.00, "ACTIVO"),
+        ("EMP-021", "Silvia Mayela", "Aguilar", "001-911224-0192H", date(1991, 12, 24), "83469715", "silvia.aguilar@nicaorder.com", "Managua, Col. Bolonia", "Contabilidad", "Contador", date(2022, 9, 5), "INDEFINIDO", 26780.00, "ACTIVO"),
+        ("EMP-022", "Umberto Antonio", "Somarriba", "058-860330-0121J", date(1986, 3, 30), "89741562", "umberto.somarriba@nicaorder.com", "Tipitapa, Barrio San Jose", "Bodega", "Bodeguero", date(2019, 4, 22), "INDEFINIDO", 10900.00, "INACTIVO"),
+        ("EMP-023", "Nohelia Karina", "Cruz", "001-980825-0389A", date(1998, 8, 25), "57382640", "nohelia.cruz@nicaorder.com", "Managua, Reparto San Juan", "Administracion", "Auxiliar Administrativo", date(2024, 11, 11), "INDEFINIDO", 9120.00, "ACTIVO"),
+        ("EMP-024", "Lester Javier", "Jarquin", "001-960513-0465G", date(1996, 5, 13), "78153906", "lester.jarquin@nicaorder.com", "Managua, Res. Los Alpes", "Ventas", "Vendedor", date(2025, 4, 7), "INDEFINIDO", 11540.00, "ACTIVO"),
+    ]
+
+    for code, first, last, identity, birth, phone, email, address, dept_name, pos_name, hire, contract, salary, status in staff_data:
+        if code in existing_codes:
+            continue
+
+        emp = Employee(
+            employee_code=code,
+            first_name=first,
+            last_name=last,
+            identity_number=identity,
+            birth_date=birth,
+            phone=phone,
+            email=email,
+            address=address,
+            department_id=depts[dept_name],
+            position_id=positions[pos_name],
+            hire_date=hire,
+            contract_type=contract,
+            base_salary=salary,
+            status=status,
         )
         db.session.add(emp)
         db.session.flush()

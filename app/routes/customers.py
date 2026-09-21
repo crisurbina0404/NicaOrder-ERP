@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from ..auth import login_required, role_required
+from ..auth import login_required, role_required, normalize_phone, validate_email
 from ..models import Customer, AuditLog
 from ..extensions import db
 from sqlalchemy import or_
@@ -53,7 +53,7 @@ def create():
         customer = Customer(
             name=request.form["name"].strip(),
             identity_number=request.form["identity_number"].strip(),
-            phone=request.form.get("phone", "").strip(),
+            phone=normalize_phone(request.form.get("phone", "")),
             email=request.form.get("email", "").strip(),
             address=request.form.get("address", "").strip(),
             is_active=True,
@@ -109,7 +109,7 @@ def edit(customer_id):
 
         customer.name = request.form["name"].strip()
         customer.identity_number = request.form["identity_number"].strip()
-        customer.phone = request.form.get("phone", "").strip()
+        customer.phone = normalize_phone(request.form.get("phone", ""))
         customer.email = request.form.get("email", "").strip()
         customer.address = request.form.get("address", "").strip()
 
@@ -169,6 +169,13 @@ def _validate_customer_form(form, exclude_id=None):
 
     name = form.get("name", "").strip()
     identity_number = form.get("identity_number", "").strip()
+    email = form.get("email", "").strip()
+
+    # Email con las mismas reglas del registro de usuarios
+    if email:
+        error = validate_email(email)
+        if error:
+            errors.append(error)
 
     if not name:
         errors.append("El nombre es obligatorio.")

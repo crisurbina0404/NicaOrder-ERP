@@ -78,9 +78,9 @@ def login():
 
         role_name = user.role.name if user.role else ""
         ROLE_DASHBOARDS = {
-            "Bodeguero": "inventory.stock",
-            "Vendedor": "sales.list",
-            "RRHH": "hr.list",
+            "Bodeguero": "main.dashboard",
+            "Vendedor": "main.dashboard",
+            "RRHH": "main.dashboard",
             "Administrador": "main.dashboard",
         }
         default_endpoint = ROLE_DASHBOARDS.get(role_name, "main.dashboard")

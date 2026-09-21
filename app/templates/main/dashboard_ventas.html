@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - NicaOrder{% endblock %}
+{% block page_title %}Panel de Ventas{% endblock %}
+
+{% block content %}
+{% set d = dashboard_data %}
+
+<div class="dashboard-stats">
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">point_of_sale</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.my_today_total) }}</div>
+            <div class="stat-label">Mis Ventas de Hoy ({{ d.my_today_count }})</div>
+        </div>
+    </div>
+    <div class="stat-card stat-green">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">trending_up</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.my_month_total) }}</div>
+            <div class="stat-label">Mis Ventas del Mes ({{ d.my_month_count }})</div>
+        </div>
+    </div>
+    <div class="stat-card stat-orange">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">receipt_long</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.avg_ticket) }}</div>
+            <div class="stat-label">Mi Ticket Promedio</div>
+        </div>
+    </div>
+    <div class="stat-card stat-orange" style="border-top: 3px solid #0996E1;">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">storefront</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.team_today_total) }}</div>
+            <div class="stat-label">Ventas del Equipo Hoy ({{ d.team_today_count }})</div>
+        </div>
+    </div>
+    <div class="stat-card stat-purple">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">leaderboard</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.team_month_total) }}</div>
+            <div class="stat-label">Ventas del Equipo en el Mes ({{ d.team_month_count }})</div>
+        </div>
+    </div>
+    <div class="stat-card stat-purple" style="border-top: 3px solid #0996E1;">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">edit_note</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">{{ d.my_draft_count }}</div>
+            <div class="stat-label">Facturas en Borrador</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-alerts">
+    <div class="alert-card alert-info">
+        <span class="material-icons-outlined">flag</span>
+        <div class="alert-body">
+            <strong>Meta del mes: {{ "%.0f"|format(d.goal_percent) }}% alcanzado</strong>
+            <div class="alert-detail">C$ {{ "%.2f"|format(d.my_month_total) }} de C$ {{ "%.2f"|format(d.monthly_goal) }}</div>
+            <div style="background:#eef2f7;border-radius:6px;height:8px;overflow:hidden;margin-top:6px;">
+                <div style="background:linear-gradient(90deg,#02187B,#0996E1);height:100%;width:{{ d.goal_percent|int }}%;"></div>
+            </div>
+        </div>
+    </div>
+    {% if d.my_draft_count > 0 %}
+    <div class="alert-card alert-warning">
+        <span class="material-icons-outlined">pending_actions</span>
+        <div class="alert-body">
+            <strong>Tienes {{ d.my_draft_count }} venta(s) sin confirmar</strong>
+            <div class="alert-detail">Las ventas en borrador no descuentan inventario hasta ser confirmadas</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3 class="section-title">Acciones Rapidas</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <a href="{{ url_for('sales.create') }}" class="btn btn-sm btn-primary">Nueva Venta</a>
+            <a href="{{ url_for('customers.create') }}" class="btn btn-sm btn-secondary">Nuevo Cliente</a>
+            <a href="{{ url_for('sales.list') }}" class="btn btn-sm btn-secondary">Ver Mis Ventas</a>
+        </div>
+        <h3 class="section-title">Mis Metodos de Pago (mes)</h3>
+        {% if d.payment_counts %}
+        {% for method, count in d.payment_counts.items() %}
+        <div class="dashboard-info-row">
+            <span>{{ {'EFECTIVO': 'Efectivo', 'TARJETA': 'Tarjeta', 'TRANSFERENCIA': 'Transferencia', 'CREDITO': 'Credito'}.get(method, method) }}</span>
+            <strong>{{ count }} venta(s)</strong>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">Sin ventas este mes.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Mis Productos Mas Vendidos</h3>
+        {% if d.top_products %}
+        {% for name, qty, total in d.top_products %}
+        <div class="dashboard-list-item">
+            <div>
+                <div class="cell-primary">{{ name }}</div>
+                <div class="cell-secondary">{{ qty }} unidad(es) vendida(s)</div>
+            </div>
+            <strong>C$ {{ "%.2f"|format(total) }}</strong>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">Aun no has vendido productos este mes.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Mis Mejores Clientes</h3>
+        {% if d.top_customers %}
+        {% for name, count, total in d.top_customers %}
+        <div class="dashboard-list-item">
+            <div>
+                <div class="cell-primary">{{ name }}</div>
+                <div class="cell-secondary">{{ count }} compra(s)</div>
+            </div>
+            <strong>C$ {{ "%.2f"|format(total) }}</strong>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">Sin clientes aun este mes.</p>
+        {% endif %}
+        <div class="dashboard-info-row" style="margin-top:6px;">
+            <span>Clientes activos en el sistema</span>
+            <strong>{{ d.active_customers }}</strong>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+    <h3 class="section-title">Ultimas Facturas del Equipo</h3>
+    <p class="empty-placeholder" style="margin-bottom:10px;">Incluye ventas de todos los vendedores; las tuyas aparecen con tu nombre de usuario.</p>
+    {% if d.recent_sales %}
+    {% for s in d.recent_sales %}
+    <div class="dashboard-list-item">
+        <div>
+            <div class="cell-primary">#{{ s.id }} - {{ s.customer.name }}</div>
+            <div class="cell-secondary">{{ s.sale_date.strftime('%d/%m/%Y %H:%M') }} | {{ s.user.username if s.user else 'N/D' }} | {{ s.payment_method }}</div>
+        </div>
+        <span class="badge badge-{{ 'cancelada' if s.status == 'CANCELADA' else 'confirmada' if s.status == 'CONFIRMADA' else 'borrador' }}">{{ s.status }}</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="empty-placeholder">No hay ventas registradas todavia.</p>
+    {% endif %}
+</div>
+
+{% if d.my_draft_sales %}
+<div class="card" style="margin-top:16px;">
+    <h3 class="section-title">Mis Facturas en Borrador</h3>
+    {% for s in d.my_draft_sales %}
+    <div class="dashboard-list-item">
+        <div>
+            <div class="cell-primary">#{{ s.id }} - {{ s.customer.name }}</div>
+            <div class="cell-secondary">{{ s.sale_date.strftime('%d/%m/%Y %H:%M') }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <strong>C$ {{ "%.2f"|format(s.total) }}</strong>
+            <a href="{{ url_for('sales.detail', sale_id=s.id) }}" class="btn btn-sm btn-primary">Continuar</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

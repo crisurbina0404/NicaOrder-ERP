@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - NicaOrder{% endblock %}
+{% block page_title %}Panel de Bodega{% endblock %}
+
+{% block content %}
+{% set d = dashboard_data %}
+
+<div class="dashboard-stats">
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">inventory_2</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">{{ d.total_products }}</div>
+            <div class="stat-label">Productos Activos</div>
+        </div>
+    </div>
+    <div class="stat-card stat-orange">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">pending</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">{{ d.quarantine_count }}</div>
+            <div class="stat-label">Lotes en Cuarentena</div>
+        </div>
+    </div>
+    <div class="stat-card stat-green">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">shopping_cart</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.month_purchases_total) }}</div>
+            <div class="stat-label">Compras del Mes</div>
+        </div>
+    </div>
+    <div class="stat-card stat-purple">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">account_balance_wallet</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.total_stock_value) }}</div>
+            <div class="stat-label">Valor del Inventario</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-alerts">
+    {% if d.low_stock_count > 0 %}
+    <div class="alert-card alert-warning">
+        <span class="material-icons-outlined">warning</span>
+        <div class="alert-body">
+            <strong>{{ d.low_stock_count }} producto(s) con stock bajo</strong>
+            <div class="alert-detail">
+                {% for item in d.low_stock_products %}
+                <span>{{ item.product.name }} ({{ item.stock }}){{ ", " if not loop.last }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <a href="{{ url_for('inventory.batches', filter='low') }}" class="btn btn-sm btn-secondary">Ver</a>
+    </div>
+    {% endif %}
+    {% if d.expired_batches > 0 %}
+    <div class="alert-card alert-danger">
+        <span class="material-icons-outlined">event_busy</span>
+        <div class="alert-body">
+            <strong>{{ d.expired_batches }} lote(s) vencido(s)</strong>
+            <div class="alert-detail">Retirar del almacen y evaluar devolucion al proveedor</div>
+        </div>
+        <a href="{{ url_for('inventory.expiring') }}" class="btn btn-sm btn-secondary">Ver</a>
+    </div>
+    {% endif %}
+    {% if d.expiring_soon_count > 0 %}
+    <div class="alert-card alert-warning">
+        <span class="material-icons-outlined">schedule</span>
+        <div class="alert-body">
+            <strong>{{ d.expiring_soon_count }} lote(s) proximos a vencer (90 dias)</strong>
+            <div class="alert-detail">
+                {% for b in d.expiring_soon_batches %}
+                <span>{{ b.product.name }} - lote {{ b.batch_number }} ({{ b.expiration_date.strftime('%d/%m/%Y') }}){{ "; " if not loop.last }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <a href="{{ url_for('inventory.expiring') }}" class="btn btn-sm btn-secondary">Ver</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3 class="section-title">Cuarentena Pendiente</h3>
+        {% if d.quarantine_batches %}
+        {% for b in d.quarantine_batches %}
+        <div class="dashboard-list-item">
+            <div>
+                <div class="cell-primary">{{ b.product.name }}</div>
+                <div class="cell-secondary">Lote {{ b.batch_number }} | vence {{ b.expiration_date.strftime('%d/%m/%Y') }}</div>
+            </div>
+            <span class="badge badge-borrador">{{ b.quantity }} und</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">No hay lotes pendientes de liberar.</p>
+        {% endif %}
+        <div style="margin-top:12px;">
+            <a href="{{ url_for('inventory.stock') }}" class="btn btn-sm btn-primary">Ir a Inventario</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Compras por Recibir</h3>
+        {% if d.pending_purchases %}
+        {% for p in d.pending_purchases %}
+        <div class="dashboard-list-item">
+            <div>
+                <div class="cell-primary">#{{ p.id }} - {{ p.supplier.name }}</div>
+                <div class="cell-secondary">{{ p.purchase_date.strftime('%d/%m/%Y') }} | Fact. {{ p.invoice_number }}</div>
+            </div>
+            <strong>C$ {{ "%.2f"|format(p.total) }}</strong>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">No hay compras pendientes.</p>
+        {% endif %}
+        <div style="margin-top:12px;display:flex;gap:8px;">
+            <a href="{{ url_for('purchases.create') }}" class="btn btn-sm btn-primary">Nueva Compra</a>
+            <a href="{{ url_for('purchases.list') }}" class="btn btn-sm btn-secondary">Ver Compras</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Ultimos Movimientos</h3>
+        {% if d.recent_movements %}
+        {% for m in d.recent_movements %}
+        <div class="dashboard-list-item">
+            <div>
+                <div class="cell-primary">{{ m.product.name }}</div>
+                <div class="cell-secondary">{{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+            </div>
+            <span class="badge {{ 'badge-pagada' if m.movement_type == 'ENTRADA' else 'badge-cancelada' }}">
+                {{ m.movement_type }} {{ m.quantity }}
+            </span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">No hay movimientos registrados.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

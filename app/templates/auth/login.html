@@ -10,49 +10,14 @@
 <body class="login-body">
     <div class="login-layout">
 
-        <!-- Panel de marca -->
-        <aside class="login-brand-panel">
-            <div class="login-brand-content">
-                <h1 class="login-brand-logo">Nica<span class="logo-accent">Order</span></h1>
-                <p class="login-brand-tagline">
-                    Sistema de gestion empresarial para tiendas de productos medicos:
-                    inventario, ventas, compras, recursos humanos y nomina en un solo lugar.
-                </p>
-                <ul class="login-brand-bullets">
-                    <li class="brand-bullet">
-                        <span class="brand-bullet-icon">
-                            <span class="material-icons-outlined">inventory_2</span>
-                        </span>
-                        <span class="brand-bullet-text">
-                            <strong>Inventario por lotes</strong>
-                            <span>Control de vencimientos, cuarentena y stock minimo</span>
-                        </span>
-                    </li>
-                    <li class="brand-bullet">
-                        <span class="brand-bullet-icon">
-                            <span class="material-icons-outlined">point_of_sale</span>
-                        </span>
-                        <span class="brand-bullet-text">
-                            <strong>Ventas con despacho FEFO</strong>
-                            <span>Salen primero los lotes mas proximos a vencer</span>
-                        </span>
-                    </li>
-                    <li class="brand-bullet">
-                        <span class="brand-bullet-icon">
-                            <span class="material-icons-outlined">payments</span>
-                        </span>
-                        <span class="brand-bullet-text">
-                            <strong>Nomina automatizada</strong>
-                            <span>Calculo de INSS e IR segun legislacion nicaraguense</span>
-                        </span>
-                    </li>
-                </ul>
-            </div>
-        </aside>
-
         <!-- Panel de formulario -->
         <main class="login-panel">
             <div class="login-panel-content">
+
+                <div class="login-brand-header">
+                    <h1 class="login-brand-logo">Nica<span class="logo-accent">Order</span><span class="logo-dot">.</span></h1>
+                    <p class="login-brand-subtitle">Sistema de gestion empresarial</p>
+                </div>
 
                 <div class="login-header">
                     <h1>Bienvenido de nuevo</h1>
@@ -94,29 +59,69 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-full">
-                        Ingresar
-                        <span class="material-icons-outlined">arrow_forward</span>
-                    </button>
+                    <div class="login-actions">
+                        <button type="submit" class="btn btn-primary login-btn-main">
+                            <span class="material-icons-outlined">login</span>
+                            Ingresar
+                        </button>
 
-                    <p class="auth-alt-text">
-                        No tiene cuenta? <a href="{{ url_for('auth.register') }}" class="link-primary">Registrarse</a>
-                    </p>
+                        <a href="{{ url_for('auth.register') }}" class="btn login-btn-alt">
+                            <span class="login-btn-alt-icon">
+                                <span class="material-icons-outlined">person_add</span>
+                            </span>
+                            <span class="login-btn-alt-label">Registrarse</span>
+                        </a>
+                    </div>
                 </form>
             </div>
         </main>
 
+        <!-- Panel de novedades -->
+        <aside class="login-brand-panel">
+            <div class="login-brand-content">
+                <h2 class="login-showcase-title">Gestion integral<br>para su negocio</h2>
+
+                <div class="login-showcase-figure">
+                    <span class="material-icons-outlined">medical_services</span>
+                </div>
+
+                <p class="login-showcase-caption">NicaOrder, sistema de productos medicos</p>
+                <p class="login-showcase-sub">
+                    Todo lo que su negocio necesita, en un solo lugar.
+                </p>
+
+                <ul class="login-showcase-list">
+                    <li class="showcase-item">
+                        <span class="showcase-item-icon">
+                            <span class="material-icons-outlined">inventory_2</span>
+                        </span>
+                        <span class="showcase-item-text">Inventario por lotes con control de vencimientos</span>
+                    </li>
+                    <li class="showcase-item">
+                        <span class="showcase-item-icon">
+                            <span class="material-icons-outlined">point_of_sale</span>
+                        </span>
+                        <span class="showcase-item-text">Ventas con despacho FEFO</span>
+                    </li>
+                    <li class="showcase-item">
+                        <span class="showcase-item-icon">
+                            <span class="material-icons-outlined">payments</span>
+                        </span>
+                        <span class="showcase-item-text">Nomina con INSS e IR automaticos</span>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
     </div>
 
-    <script>
-        function togglePassword(btn, inputId) {
-            var input = document.getElementById(inputId);
-            var icon = btn.querySelector('.material-icons-outlined');
-            var show = input.type === 'password';
-            input.type = show ? 'text' : 'password';
-            icon.textContent = show ? 'visibility_off' : 'visibility';
-            btn.setAttribute('aria-label', show ? 'Ocultar contrasena' : 'Mostrar contrasena');
-        }
-    </script>
+    <footer class="login-footer">
+        <p>
+            <span class="login-footer-brand">Nica<span class="logo-accent">Order</span></span>
+            &copy; 2026 NicaOrder. Todos los derechos reservados.
+        </p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 </body>
 </html>

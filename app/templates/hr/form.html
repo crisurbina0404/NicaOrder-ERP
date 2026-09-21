@@ -38,7 +38,7 @@
                 </div>
                 <div class="form-group">
                     <label for="phone">Telefono</label>
-                    <input type="text" id="phone" name="phone" value="{{ form_data.phone if form_data.phone is defined else (employee.phone if is_edit else '') }}" maxlength="30" placeholder="Ej: 8888-1234">
+                    <input type="tel" id="phone" name="phone" value="{{ form_data.phone if form_data.phone is defined else (employee.phone if is_edit else '') }}" maxlength="8" inputmode="numeric" pattern="[578][0-9]{7}" placeholder="85562548" title="Exactamente 8 digitos e inicia con 5, 7 u 8">
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>

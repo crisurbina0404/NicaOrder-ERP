@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from ..auth import login_required, role_required
+from ..auth import login_required, role_required, normalize_phone, validate_email, validate_phone
 from ..models import Employee, SalaryHistory, Department, Position, AuditLog
 from ..extensions import db
 from sqlalchemy import or_
@@ -97,7 +97,7 @@ def create():
             last_name=request.form["last_name"].strip(),
             identity_number=request.form["identity_number"].strip(),
             birth_date=birth_date,
-            phone=request.form.get("phone", "").strip(),
+            phone=normalize_phone(request.form.get("phone", "")),
             email=request.form.get("email", "").strip(),
             address=request.form.get("address", "").strip(),
             department_id=int(request.form["department_id"]),
@@ -216,7 +216,7 @@ def edit(employee_id):
         employee.last_name = request.form["last_name"].strip()
         employee.identity_number = request.form["identity_number"].strip()
         employee.birth_date = birth_date
-        employee.phone = request.form.get("phone", "").strip()
+        employee.phone = normalize_phone(request.form.get("phone", ""))
         employee.email = request.form.get("email", "").strip()
         employee.address = request.form.get("address", "").strip()
         employee.department_id = int(request.form["department_id"])
@@ -321,10 +321,17 @@ def _validate_employee_form(form, exclude_code=None, exclude_identity=None):
     first_name = form.get("first_name", "").strip()
     last_name = form.get("last_name", "").strip()
     identity = form.get("identity_number", "").strip()
+    phone = normalize_phone(form.get("phone", ""))
+    email = form.get("email", "").strip()
     department_id = form.get("department_id", "").strip()
     position_id = form.get("position_id", "").strip()
     hire_date = form.get("hire_date", "").strip()
     base_salary = form.get("base_salary", "").strip()
+
+    # Telefono y email con las mismas reglas del registro de usuarios
+    for error in (validate_phone(phone), validate_email(email)):
+        if error:
+            errors.append(error)
 
     if not code:
         errors.append("El codigo de empleado es obligatorio.")

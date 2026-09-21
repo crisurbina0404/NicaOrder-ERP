@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from ..auth import login_required, role_required
+from ..auth import login_required, role_required, normalize_phone, validate_email
 from ..models import Supplier, AuditLog
 from ..extensions import db
 from sqlalchemy import or_
@@ -54,7 +54,7 @@ def create():
         supplier = Supplier(
             name=request.form["name"].strip(),
             tax_id=request.form["tax_id"].strip(),
-            phone=request.form.get("phone", "").strip(),
+            phone=normalize_phone(request.form.get("phone", "")),
             email=request.form.get("email", "").strip(),
             address=request.form.get("address", "").strip(),
             contact_person=request.form.get("contact_person", "").strip(),
@@ -116,7 +116,7 @@ def edit(supplier_id):
 
         supplier.name = request.form["name"].strip()
         supplier.tax_id = request.form["tax_id"].strip()
-        supplier.phone = request.form.get("phone", "").strip()
+        supplier.phone = normalize_phone(request.form.get("phone", ""))
         supplier.email = request.form.get("email", "").strip()
         supplier.address = request.form.get("address", "").strip()
         supplier.contact_person = request.form.get("contact_person", "").strip()
@@ -186,6 +186,13 @@ def _validate_supplier_form(form, exclude_tax_id=None):
 
     name = form.get("name", "").strip()
     tax_id = form.get("tax_id", "").strip()
+    email = form.get("email", "").strip()
+
+    # Email con las mismas reglas del registro de usuarios
+    if email:
+        error = validate_email(email)
+        if error:
+            errors.append(error)
 
     if not name:
         errors.append("El nombre es obligatorio.")

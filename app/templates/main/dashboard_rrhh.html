@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - NicaOrder{% endblock %}
+{% block page_title %}Panel de Recursos Humanos{% endblock %}
+
+{% block content %}
+{% set d = dashboard_data %}
+
+<div class="dashboard-stats">
+    <div class="stat-card stat-blue">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">groups</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">{{ d.active_employees }}</div>
+            <div class="stat-label">Empleados Activos ({{ d.total_employees }} total)</div>
+        </div>
+    </div>
+    <div class="stat-card stat-green">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">payments</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">C$ {{ "%.2f"|format(d.period_net) }}</div>
+            <div class="stat-label">
+                Planilla {{ d.month_names[d.current_period.month] ~ ' ' ~ d.current_period.year if d.current_period else 'del mes' }}
+                ({{ d.period_count }} emp.)
+            </div>
+        </div>
+    </div>
+    <div class="stat-card stat-orange">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">note_add</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">{{ d.pending_adjustments }}</div>
+            <div class="stat-label">Novedades del Periodo</div>
+        </div>
+    </div>
+    <div class="stat-card stat-purple">
+        <div class="stat-icon">
+            <span class="material-icons-outlined">person_add</span>
+        </div>
+        <div class="stat-body">
+            <div class="stat-value">{{ d.month_hires|length }}</div>
+            <div class="stat-label">Aniversarios de Ingreso este Mes</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-alerts">
+    {% if d.inactive_employees > 0 %}
+    <div class="alert-card alert-warning">
+        <span class="material-icons-outlined">person_off</span>
+        <div class="alert-body">
+            <strong>{{ d.inactive_employees }} empleado(s) inactivo(s)</strong>
+            <div class="alert-detail">Personal que requiere actualizacion de expediente o baja formal</div>
+        </div>
+        <a href="{{ url_for('hr.list') }}" class="btn btn-sm btn-secondary">Ver</a>
+    </div>
+    {% endif %}
+    {% if d.birthdays %}
+    <div class="alert-card alert-info">
+        <span class="material-icons-outlined">cake</span>
+        <div class="alert-body">
+            <strong>{{ d.birthdays|length }} cumpleano(s) este mes</strong>
+            <div class="alert-detail">
+                {% for e in d.birthdays %}
+                <span>{{ e.full_name }} ({{ e.birth_date.day }}){{ ", " if not loop.last }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3 class="section-title">Estado de Planilla</h3>
+        {% if d.current_period %}
+        <div class="dashboard-info-row">
+            <span>Periodo</span>
+            <strong>{{ d.month_names[d.current_period.month] }} {{ d.current_period.year }}</strong>
+        </div>
+        <div class="dashboard-info-row">
+            <span>Estado</span>
+            <span class="badge badge-{{ 'pagada' if d.period_status == 'PAGADA' else 'confirmada' if d.period_status in ('CALCULADA', 'APROBADA') else 'borrador' }}">{{ d.period_status }}</span>
+        </div>
+        <div class="dashboard-info-row">
+            <span>Empleados pagados</span>
+            <strong>{{ d.period_count }}</strong>
+        </div>
+        {% else %}
+        <p class="empty-placeholder">Aun no existe periodo de nomina para este mes.</p>
+        {% endif %}
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="{{ url_for('payroll.index') }}" class="btn btn-sm btn-primary">Ir a Nomina</a>
+            <a href="{{ url_for('payroll.calculate') }}" class="btn btn-sm btn-secondary">Calcular Planilla</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Distribucion por Departamento</h3>
+        {% for name, count in d.dept_distribution %}
+        <div style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;">
+                <span>{{ name }}</span>
+                <strong>{{ count }}</strong>
+            </div>
+            <div style="background:#eef2f7;border-radius:6px;height:8px;overflow:hidden;">
+                <div style="background:linear-gradient(90deg,#02187B,#0996E1);height:100%;width:{{ (count / d.max_dept_count * 100)|round|int }}%;"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <h3 class="section-title">Ingresos Recientes</h3>
+        {% if d.recent_hires %}
+        {% for e in d.recent_hires %}
+        <div class="dashboard-list-item">
+            <div>
+                <div class="cell-primary">{{ e.full_name }}</div>
+                <div class="cell-secondary">{{ e.position.name }} | ingreso {{ e.hire_date.strftime('%d/%m/%Y') }}</div>
+            </div>
+            <span class="badge badge-confirmada">{{ e.contract_type }}</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty-placeholder">No hay empleados registrados.</p>
+        {% endif %}
+        <div style="margin-top:12px;">
+            <a href="{{ url_for('hr.create') }}" class="btn btn-sm btn-primary">Agregar Empleado</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
